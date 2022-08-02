@@ -13,4 +13,5 @@ dependencies:
       - mat4py
       - mne
       - imblearn
+      - black
 prefix: E:\miniconda3_venvs\BCI
