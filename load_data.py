@@ -1,7 +1,9 @@
+from tkinter import Y
 import numpy as np
 from imblearn.under_sampling import RandomUnderSampler
 import glob
 from mat4py import loadmat
+from utils import butter_bandpass_filter
 
 
 def get_files(folder):
@@ -34,15 +36,14 @@ def get_data_from_file(filename):
     Returns:
         tuple: (X, Y, T, F)
     """
-    channels = ["Fz", "Cz", "P3", "Pz", "P4", "PO7", "PO8", "Oz"]
     raw_data = loadmat(filename)
     useful_data = raw_data["data"].copy()
-    X = useful_data["X"]
-    Y = useful_data["y"]
-    T = useful_data["trial"]
-    F = useful_data["flash"]
+    x = useful_data["X"]
+    y = useful_data["y"]
+    t = useful_data["trial"]
+    f = useful_data["flash"]
 
-    return X, Y, T, F
+    return x, y, t, f
 
 
 def prepare_data(X, Y, flash, start, stop, fs, undersample_bool):
@@ -61,18 +62,30 @@ def prepare_data(X, Y, flash, start, stop, fs, undersample_bool):
     Returns:
         (X, Y): tuple
     """
+    # Domain knowledge from the data
+    N_COLUMN_ROW = 12  # 6 rows, 6 columns (also number of flashes each round)
+    N_REPEAT = 10  # Play 10 rounds of flashes each trial (meaning 120 flashes total) before choose the character
+    N_CHANNEL = 8  # EEG channels
+    N_TRIAL = 35  # But last trial is incompleted
+
     X = np.array(X)
     start_samples = int(start * fs)
     stop_samples = int(stop * fs)
-    X_samples = np.zeros((len(flash) - 120, int(stop_samples - start_samples), 8))
 
-    for i in range(len(flash) - 120):
+    # Remove the samples of the last trial, since it's incomplete
+    # Therefore we should have 34 * 120 = 4080 for length of flash (from 1 file)
+    flash = flash[: len(flash) - (N_REPEAT * N_COLUMN_ROW)]
+
+    X_samples = np.zeros((len(flash), int(stop_samples - start_samples), N_CHANNEL))
+
+    for i in range(len(flash)):
         event = flash[i][0]
         X_samples[i, :, :] = X[event + start_samples : event + stop_samples :]
+
+    # The variable nohit/hit of flash[3] is 1/2, so we minus it 1 to become 0/1
     label = [i[3] - 1 for i in flash]
 
-    LIMIT = 4080  # the last trial is incomplete
-    y = np.array(label[:LIMIT])
+    y = np.array(label)
     X_samples = X_samples.reshape(X_samples.shape[0], X_samples.shape[1] * X_samples.shape[2])
 
     if undersample_bool:
@@ -105,19 +118,27 @@ def load_prepared_data(n_files, data_path, start, stop, fs, undersample_bool):
 
     for i in range(n_files):
         file = files[i]
-        X, Y, trials, flash = get_data_from_file(file)
+        x, y, trials, flash = get_data_from_file(file)
+        print(flash[:10])
+        # Should be 1360 for undersampled, and 4080 for non-undersampled, for one data file.
         # paired X(rows of stacked 8x250 data), y(label) containing equal number of hits & nohits: expect to be 2*(35-1)*10=680 each? so sum to 1360
-        X_clean, y_clean = prepare_data(X, Y, flash, start, stop, fs, undersample_bool)
+        X_clean, y_clean = prepare_data(x, y, flash, start, stop, fs, undersample_bool)
         appX.append(X_clean)
         appY.append(np.array(y_clean))
 
     return appX, appY
 
 
-# TODO: Filtering methods
+# Unit testing
 if __name__ == "__main__":
     print("==========load_data.py unit testing==========")
-    files = get_files("./p300dataset/*.mat")
-    print("No. of files = " + str(len(files)))
-    print("adw")
-    print("Files:", files)
+    start = 0
+    stop = 1
+    fs = 250
+    data_path = "./p300dataset/*.mat"
+    channels = ["Fz", "Cz", "P3", "Pz", "P4", "PO7", "PO8", "Oz"]
+    x, y = load_prepared_data(1, data_path, start, stop, fs, False)
+    print(np.size(y))
+    print(y[:10])
+
+# TODO: Filtering methods
