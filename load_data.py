@@ -53,7 +53,7 @@ def prepare_data(X, Y, flash, start, stop, fs, undersample_bool):
     Args:
         X (_type_): contains extracted signal arrays
         Y (_type_): contains labels, not yet used
-        flash ([int, int, int, int]): arrays of 'point id', 'duration', 'stimulation', 'hit/nohit'
+        flash ([int, int, int, int]): arrays of 'timepoint id', 'duration', 'stimulation(row/column)', 'hit/nohit'
         start (float): start time
         stop (float): stop time
         fs (float): frequency sampling rate
@@ -92,6 +92,11 @@ def prepare_data(X, Y, flash, start, stop, fs, undersample_bool):
         undersample = RandomUnderSampler(sampling_strategy="majority")
         X_samples, y = undersample.fit_resample(X_samples, y)
 
+        # Make sure it divisible by 12, so I remove excess sample
+        tmp = (len(X_samples) // 12) * 12
+        X_samples = X_samples[:tmp]
+        y = y[:tmp]
+
     return X_samples, y
 
 
@@ -119,7 +124,6 @@ def load_prepared_data(n_files, data_path, start, stop, fs, undersample_bool):
     for i in range(n_files):
         file = files[i]
         x, y, trials, flash = get_data_from_file(file)
-        print(flash[:10])
         # Should be 1360 for undersampled, and 4080 for non-undersampled, for one data file.
         # paired X(rows of stacked 8x250 data), y(label) containing equal number of hits & nohits: expect to be 2*(35-1)*10=680 each? so sum to 1360
         X_clean, y_clean = prepare_data(x, y, flash, start, stop, fs, undersample_bool)
@@ -137,7 +141,7 @@ if __name__ == "__main__":
     fs = 250
     data_path = "./p300dataset/*.mat"
     channels = ["Fz", "Cz", "P3", "Pz", "P4", "PO7", "PO8", "Oz"]
-    x, y = load_prepared_data(1, data_path, start, stop, fs, False)
+    x, y = load_prepared_data(1, data_path, start, stop, fs, True)
     print(np.size(y))
     print(y[:10])
 
