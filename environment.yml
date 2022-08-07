@@ -14,4 +14,6 @@ dependencies:
       - mne
       - imblearn
       - black
+      - serial
+      - pylsl
 prefix: E:\miniconda3_venvs\BCI

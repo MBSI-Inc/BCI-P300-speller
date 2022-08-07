@@ -22,10 +22,18 @@ def get_files(folder):
     return files
 
 
+# In data.y you have all the markers that represent whether or not that time point was coincidental with the the
+# stimulus that was meant to elicit a P300 response. If this value is 0, no stimulus was applied. If this value
+# is 1 then a row/column stimulus was applied which do not correspond to the expected letter. If this value is
+# 2, then the row/column which correspond to the target letter was present.
+
+# In data.flash is composed of 4 fields, [sample point id, duration, stimulation, hit/nohit]. The first is the index
+# time point, where the stimulation begins. The following is the duration in time points, a marker which means what
+# stimulation was activated, and hit/nohit if the stimulation was of a target letter or not.
 def get_data_from_file(filename):
     """
     Load data from a file
-    - X contains extracted signal arrays
+    - X contains extracted signal arrays (microVolt)
     - Y contains labels, not yet used
     - T 'trial', not yet used
     - F contains 'flash', arrays of 'point id', 'duration', 'stimulation', 'hit/nohit'
@@ -52,7 +60,7 @@ def prepare_data(X, Y, flash, start, stop, fs, undersample_bool):
 
     Args:
         X (_type_): contains extracted signal arrays
-        Y (_type_): contains labels, not yet used
+        Y (_type_): contains labels
         flash ([int, int, int, int]): arrays of 'timepoint id', 'duration', 'stimulation(row/column)', 'hit/nohit'
         start (float): start time
         stop (float): stop time
@@ -93,9 +101,10 @@ def prepare_data(X, Y, flash, start, stop, fs, undersample_bool):
         X_samples, y = undersample.fit_resample(X_samples, y)
 
         # Make sure it divisible by 12, so I remove excess sample
-        tmp = (len(X_samples) // 12) * 12
-        X_samples = X_samples[:tmp]
-        y = y[:tmp]
+        # Actually, may not make sense, ignore it for now
+        # tmp = (len(X_samples) // 12) * 12
+        # X_samples = X_samples[:tmp]
+        # y = y[:tmp]
 
     return X_samples, y
 
@@ -113,7 +122,7 @@ def load_prepared_data(n_files, data_path, start, stop, fs, undersample_bool):
         undersample_bool (bool): whether we undersample the data or not
 
     Returns:
-        (X, Y): tuple
+        (X, Y, flash): tuple
     """
     appX = []
     appY = []
@@ -130,7 +139,7 @@ def load_prepared_data(n_files, data_path, start, stop, fs, undersample_bool):
         appX.append(X_clean)
         appY.append(np.array(y_clean))
 
-    return appX, appY
+    return appX, appY, flash
 
 
 # Unit testing
@@ -140,9 +149,12 @@ if __name__ == "__main__":
     stop = 1
     fs = 250
     data_path = "./p300dataset/*.mat"
-    channels = ["Fz", "Cz", "P3", "Pz", "P4", "PO7", "PO8", "Oz"]
-    x, y = load_prepared_data(1, data_path, start, stop, fs, True)
-    print(np.size(y))
-    print(y[:10])
+    files = get_files(data_path)
+    for file in files:
+        x, y, t, f = get_data_from_file(file)
+        print("FLASHHHHH")
+        print(np.shape(f))
+        print(f[:24])
+
 
 # TODO: Filtering methods

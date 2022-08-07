@@ -50,20 +50,7 @@ from sklearn.pipeline import make_pipeline
 
 # Our stuff
 from load_data import load_prepared_data
-
-
-def reshape_data(appX, appY, fs, n_channel):
-    # Reshaped
-    data_x = np.array([subject for subject in appX])  # 1360 flashes of 2000 samples
-    data_y = np.array([np.array(subject) for subject in appY])
-    data_x = np.vstack(data_x)  # put
-    data_x = data_x.reshape(
-        data_x.shape[0], int(data_x.shape[1] / fs), int(data_x.shape[1] / n_channel)
-    )  # reshape into 8 channels of 250 = 2000
-    data_y = data_y.reshape(data_y.shape[0] * data_y.shape[1])
-
-    # X.shape is 1360x8x250. 8 channel of 250 sample(1s)
-    return data_x, data_y
+from utils import reshape_data_for_training
 
 
 def training(data_x, data_y, channels, fs):
@@ -93,59 +80,62 @@ def training(data_x, data_y, channels, fs):
         preds[test_ind] = clf.predict(X_mne[test_ind])
 
     mne.set_log_level(verbose=old_log_level)
-    return preds
+    return preds, clf
 
 
-def histogram(preds):
-    preds_set_hit = np.zeros(len(preds) // 12)
+def testing(preds, flash):
+    # Reshape predict hit
+    preds_set_hit = np.zeros(4080 // 12)
     for i in range(12):
-        # rows = hit_seq[i::12]
         rows = preds[i::12]
-        # set_hit = np.vstack((set_hit, rows))
         preds_set_hit = np.vstack((preds_set_hit, rows))
-    plt.hist(sum(preds_set_hit[1:, :]))
-    print("before transpose")
-    print(np.shape(preds_set_hit))
-    print(sum(preds_set_hit[1:, :]))
     preds_set_hit = np.transpose(preds_set_hit[1:, :])
-    print("after transpose", np.shape(preds_set_hit))
-    print(preds_set_hit[0:10])
-    plt.show()
 
-
-def get_flashed_column_row(flash):
-    """
-    _summary_
-
-    Args:
-        flash ([int, int, int, int]): arrays of 'timepoint id', 'duration', 'stimulation(row/column)', 'hit/nohit'
-    """
+    # Get flashed row/column id sequence
     id_seq = [each[2] for each in flash]
-    # print(len(id_seq))
-    # print(id_seq[0:20])
-    # print(id_seq[0:20:2])
-    # print(id_seq[0::1000])
     set_seq = np.zeros(4200 // 12)
     for i in range(12):
         rows = id_seq[i::12]
         set_seq = np.vstack((set_seq, rows))
-    # print(np.shape(set_seq))
-    # plt.hist(sum(set_seq[1:,:]))
     set_seq = np.transpose(set_seq[1:, :])
-    # print(np.shape(set_seq))
-    # print(set_seq[0:5])
 
+    # Get flashed hit sequence (truth value)
     hit_seq = [each[3] - 1 for each in flash]
-    # print(len(id_seq))
     set_hit = np.zeros(4200 // 12)
     for i in range(12):
         rows = hit_seq[i::12]
         set_hit = np.vstack((set_hit, rows))
-    # print(np.shape(set_hit))
-    plt.hist(sum(set_hit[1:, :]))
     set_hit = np.transpose(set_hit[1:, :])
-    # print(np.shape(set_hit))
-    print(set_hit[0:10])
+
+    # Get truth coordinates
+    set_coords = [seq_i[hit_i == 1] for seq_i, hit_i in zip(set_seq, set_hit)]
+    for i in range(len(set_coords)):
+        if set_coords[i][0] > 6:
+            set_coords[i] = np.array([set_coords[i][1], set_coords[i][0]])
+    set_coords = np.array(set_coords)
+
+    # Get predict coordinates
+    preds_set_coords = [seq_i[hit_i == 1] for seq_i, hit_i in zip(set_seq, preds_set_hit)]
+    preds_set_coords = np.array(preds_set_coords)
+
+    # Reshape and compare
+    preds_set_coords2 = np.array([0, 0])
+    true_set_coords2 = np.array([0, 0])
+    for letter_id in range(34):
+        modes = (
+            pd.DataFrame([elt for lst in preds_set_coords[letter_id * 10 : letter_id * 10 + 10] for elt in lst])
+            .value_counts()
+            .index.tolist()
+        )
+        preds_set_coords2 = np.vstack((preds_set_coords2, [modes[0][0], modes[1][0]]))
+        true_set_coords2 = np.vstack((true_set_coords2, set_coords[letter_id * 10]))
+    for i in range(len(preds_set_coords2)):
+        # Make sure 1-6 is in [0], 7-12 is in [1] for easier comparision
+        if preds_set_coords2[i][0] > 6:
+            preds_set_coords2[i] = np.array([preds_set_coords2[i][1], preds_set_coords2[i][0]])
+
+    final_acc = np.sum(preds_set_coords2 == true_set_coords2) / np.size(preds_set_coords2 == true_set_coords2)
+    return final_acc
 
 
 def main():
@@ -157,20 +147,16 @@ def main():
 
     # Load data
     # appX appy extended for each datafile
-    (appX, appY) = load_prepared_data(1, data_path, start, stop, fs, False)
-    # (appX_nonUS, appY_nonUS) = load_prepared_data(1, data_path, start, stop, fs, False)
+    (appX, appY, flash) = load_prepared_data(1, data_path, start, stop, fs, False)
     print("AppX shape", np.shape(appX))
     print("AppY shape", np.shape(appY))
 
-    # Reshape
-    data_x, data_y = reshape_data(appX, appY, fs, len(channels))
-    print(data_x.shape, data_y.shape)
+    data_x, data_y = reshape_data_for_training(appX, appY, fs, len(channels))
 
     # Training and test
-    preds = training(data_x, data_y, channels, fs)
-    print(preds[:36])
-
-    histogram(preds)
+    preds, _ = training(data_x, data_y, channels, fs)
+    acc = testing(preds, flash)
+    print("ACC", acc)
 
 
 if __name__ == "__main__":
