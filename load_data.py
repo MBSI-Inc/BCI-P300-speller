@@ -71,7 +71,7 @@ def prepare_data(X, Y, flash, start, stop, fs, undersample_bool):
         (X, Y): tuple
     """
     # Domain knowledge from the data
-    N_COLUMN_ROW = 12  # 6 rows, 6 columns (also number of flashes each round)
+    N_SIMULATION = 12  # 6 rows, 6 columns (also number of flashes each round)
     N_REPEAT = 10  # Play 10 rounds of flashes each trial (meaning 120 flashes total) before choose the character
     N_CHANNEL = 8  # EEG channels
     N_TRIAL = 35  # But last trial is incompleted
@@ -82,7 +82,7 @@ def prepare_data(X, Y, flash, start, stop, fs, undersample_bool):
 
     # Remove the samples of the last trial, since it's incomplete
     # Therefore we should have 34 * 120 = 4080 for length of flash (from 1 file)
-    flash = flash[: len(flash) - (N_REPEAT * N_COLUMN_ROW)]
+    flash = flash[: len(flash) - (N_REPEAT * N_SIMULATION)]
 
     X_samples = np.zeros((len(flash), int(stop_samples - start_samples), N_CHANNEL))
 
@@ -109,9 +109,10 @@ def prepare_data(X, Y, flash, start, stop, fs, undersample_bool):
     return X_samples, y
 
 
-def load_prepared_data(n_files, data_path, start, stop, fs, undersample_bool):
+def load_prepared_data(file, start, stop, fs, undersample_bool):
     """
     Load cleaned data from multiple files, ready to use.
+    Return X, Y and flash. Flash is an array of ['timepoint id', 'duration', 'stimulation(row/column)', 'hit/nohit']
 
     Args:
         n_files (int): number of files to load. Must less than number of files available
@@ -126,18 +127,12 @@ def load_prepared_data(n_files, data_path, start, stop, fs, undersample_bool):
     """
     appX = []
     appY = []
-    files = get_files(data_path)
-    if len(files) < n_files:
-        print("ERROR: (load_data/load_prepared_data) Not enough files to load")
-
-    for i in range(n_files):
-        file = files[i]
-        x, y, trials, flash = get_data_from_file(file)
-        # Should be 1360 for undersampled, and 4080 for non-undersampled, for one data file.
-        # paired X(rows of stacked 8x250 data), y(label) containing equal number of hits & nohits: expect to be 2*(35-1)*10=680 each? so sum to 1360
-        X_clean, y_clean = prepare_data(x, y, flash, start, stop, fs, undersample_bool)
-        appX.append(X_clean)
-        appY.append(np.array(y_clean))
+    x, y, trials, flash = get_data_from_file(file)
+    # Should be 1360 for undersampled, and 4080 for non-undersampled, for one data file.
+    # paired X(rows of stacked 8x250 data), y(label) containing equal number of hits & nohits: expect to be 2*(35-1)*10=680 each? so sum to 1360
+    X_clean, y_clean = prepare_data(x, y, flash, start, stop, fs, undersample_bool)
+    appX.append(X_clean)
+    appY.append(np.array(y_clean))
 
     return appX, appY, flash
 
