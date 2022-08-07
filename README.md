@@ -4,6 +4,8 @@ Data source: <https://www.kaggle.com/rramele/p300samplingdataset>
 
 Related paper: <https://www.frontiersin.org/articles/10.3389/fncom.2019.00043/full>
 
+Colab file: <https://drive.google.com/file/d/1O8k0LcvALgtEFIesd3hDMDRDHs8VS9Mg/view?usp=sharing>
+
 ## Dataset extra info
 
 - Each subject spell the same word/letter, but the flash data is different (since it is random order). However, if you just need
