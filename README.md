@@ -2,6 +2,13 @@
 
 Data source: <https://www.kaggle.com/rramele/p300samplingdataset>
 
+Related paper: <https://www.frontiersin.org/articles/10.3389/fncom.2019.00043/full>
+
+## Dataset extra info
+
+- Each subject spell the same word/letter, but the flash data is different (since it is random order). However, if you just need
+  the flash's simulation id (of row and columns) to test correctness of prediction, flash data from one subject (one file) is ok for everyone.
+
 ## Command
 
 Required Anaconda or Miniconda installed.
