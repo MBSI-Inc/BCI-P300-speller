@@ -1,16 +1,14 @@
 # BCI P300 Speller
 
-Data source: <https://www.kaggle.com/rramele/p300samplingdataset>
+## Pygame section
 
-Related paper: <https://www.frontiersin.org/articles/10.3389/fncom.2019.00043/full>
+- game_with_eeg.py
+- Character.py
+- MockExplore.py
 
-Colab file: <https://drive.google.com/file/d/1O8k0LcvALgtEFIesd3hDMDRDHs8VS9Mg/view?usp=sharing>
+The code is designed to be adjustible so that the the timings, letters and loops can be changed.
 
-## Dataset extra info
-
-- Each subject spell the same word/letter, but the flash data is different (since it is random order). However, if you just need
-  the flash's simulation id (of row and columns) to test correctness of prediction, flash data from one subject (one file) is ok for everyone.
-- Each file is one subject, comprise of 35 trials, but last trial is incompleted so we only use 34.;
+The game will run through each row and column `n_cycles_in_epoch` times, after which it will either wait `break_time` seconds before starting a new epoch or wait until the user presses space, depending of if `auto_epoch` is true.
 
 ## Command
 
@@ -18,18 +16,20 @@ Required Anaconda or Miniconda installed.
 
 Create a new virtual environment and install packages
 
-```python
-conda env create -f environment.yml
-```
+`conda env create -f environment.yml`
 
 Update environment
 
-```python
-conda env update -f environment.yml --prune
-```
+`conda env update -f environment.yml --prune`
 
-To run
+Run with recording data from Mentalab Explore device
 
-```python
-python main.py
-```
+`python game_with_eeg.py -n [device_name] -f [output_file_name]`
+
+If you don't have access to the device or just want to make change to pygame code:
+
+`python game_with_eeg.py -m true`
+
+To train model with data collected from Mentalab Explore device
+
+`python train_model.py`

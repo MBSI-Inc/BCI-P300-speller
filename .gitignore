@@ -1,6 +1,9 @@
 # Data stuff
 p300dataset/
+mentalab_p300_data/
 *.mat
+*.joblib
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

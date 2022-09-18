@@ -197,7 +197,7 @@ def main():
     channels = ["Fz", "Cz", "P3", "Pz", "P4", "PO7", "PO8", "Oz"]
 
     files = get_files(data_path)
-    for i in range(len(files)):  # Number of files to load
+    for i in range(1):  # Number of files to load
         # Load data
         print("ID", i)
         appX, appY, flash = load_prepared_data(files[i], start, stop, fs, False)
