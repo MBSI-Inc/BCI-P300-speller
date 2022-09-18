@@ -22,6 +22,21 @@ Brandon's code.
 
 Data to be trained need to be in `data` folder, which on root folder. Other parameters need to be adjusted in the `setup()` function inside `train_model.py`.
 
+Example data structure:
+
+```python
+data/
+  |-brandon8hz/
+  |-brandon16hz/
+    |-brandon16hz_ExG.csv
+    |-brandon16hz_Marker.csv
+    |-brandon16hz_Meta.csv
+    |-brandon16hz_ORN.csv
+train_model.py
+.gitignore
+.vscode/
+```
+
 Currently, after training, the model will be saved as `model.joblib`.
 
 In next updates, we will add argument parsers so it's easier to change parameters and load model.
