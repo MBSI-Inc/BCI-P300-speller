@@ -41,23 +41,17 @@ FPS = 60
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Example code for marker generation")
-    parser.add_argument("-n", "--name", dest="name", type=str, help="Name of the device.")
+    parser.add_argument("-n", "--name", dest="name", type=str, help="Name of the device")
     parser.add_argument(
         "-f",
         "--filename",
         dest="filename",
         default="eeg_output",
         type=str,
-        help="Name of the output files.",
+        help="Name of the output files",
     )
-    parser.add_argument(
-        "-m",
-        "--mock",
-        dest="mock",
-        default=False,
-        type=bool,
-        help="Use a mock Mentalab Explore device.",
-    )
+    parser.add_argument("-m", "--mock", dest="mock", help="Use a mock Mentalab Explore device", action="store_true")
+
     args = parser.parse_args()
     return args
 

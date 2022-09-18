@@ -59,7 +59,7 @@ Run with recording data from Mentalab Explore device
 
 If you don't have access to the device or just want to make change to pygame code:
 
-`python game_with_eeg.py -m true`
+`python game_with_eeg.py -m`
 
 To train model with data collected from Mentalab Explore device
 
