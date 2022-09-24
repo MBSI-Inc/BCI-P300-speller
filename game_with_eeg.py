@@ -4,6 +4,7 @@ import random
 import time
 import explorepy
 import argparse
+import csv
 from MockExplore import MockExplore
 from Character import Character
 
@@ -68,6 +69,39 @@ def create_explore_object(args):
     return explore
 
 
+def write_session_parameters(args):
+    with open(args.filename + "_Param.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(
+            [
+                "stimulus_interval",
+                "intensification_duration",
+                "n_cycles_in_epoch",
+                "auto_epoch",
+                "break_time",
+                "displayed_chars",
+                "matrix_dimensions",
+                "font_size",
+                "flash_type",
+                "screen_size",
+            ]
+        )
+        writer.writerow(
+            [
+                STIMULUS_INTERVAL,
+                INTENSIFICATION_DURATION,
+                N_CYCLES_IN_EPOCH,
+                AUTO_EPOCH,
+                BREAK_TIME,
+                DISPLAYED_CHARS,
+                MATRIX_DIMENSIONS,
+                FONT_SIZE,
+                FLASH_TYPE,
+                SCREEN_SIZE,
+            ]
+        )
+
+
 def init_char_array(starting_x_pos, char_surface_size, explore):
     font = pygame.font.Font("HelveticaBold.ttf", FONT_SIZE)
     # Initialises all the characters to be shown on screen, saves each character in their group
@@ -96,6 +130,10 @@ def init_char_array(starting_x_pos, char_surface_size, explore):
 
 
 def check_user_event(explore, epoch_on, n_cycles):
+    """
+    Checks user events to exit program or restart epoch.
+    Press SPACE to continue.
+    """
     for event in pygame.event.get():
         # exits program if user presses exit
         if event.type == pygame.QUIT:
@@ -112,6 +150,7 @@ def check_user_event(explore, epoch_on, n_cycles):
 def main():
     args = parse_arguments()
     explore = create_explore_object(args)
+    write_session_parameters(args)
 
     # finds derived values
     char_surface_size = (SCREEN_SIZE[0] / MATRIX_DIMENSIONS[0], SCREEN_SIZE[1] / MATRIX_DIMENSIONS[1])
