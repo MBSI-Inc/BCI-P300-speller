@@ -8,7 +8,7 @@
 
 Reuben's and Lam's code.
 
-The code is designed to be adjustible so that the the timings, letters and loops can be changed.
+The code is designed to be adjustible so that the timings, letters and loops can be changed.
 
 The game will run through each row and column `n_cycles_in_epoch` times, after which it will either wait `break_time` seconds before starting a new epoch or wait until the user presses space, depending of if `auto_epoch` is true.
 
@@ -43,7 +43,7 @@ In next updates, we will add argument parsers so it's easier to change parameter
 
 ## Command
 
-Required Anaconda or Miniconda installed.
+Required **Anaconda** or **Miniconda** installed.
 
 Create a new virtual environment and install packages
 

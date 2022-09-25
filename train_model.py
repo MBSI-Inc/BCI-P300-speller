@@ -2,7 +2,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.preprocessing import MinMaxScaler
-from joblib import dump, load
+from joblib import dump
 from imblearn.under_sampling import RandomUnderSampler
 import mne
 from mne.preprocessing import Xdawn
@@ -11,8 +11,6 @@ from mne.decoding import Vectorizer
 # Our stuff
 from utils import time_series
 from analysis import print_predict_and_truth
-
-# sampling frequency
 
 
 def setup():
