@@ -14,4 +14,5 @@ dependencies:
       - pygame
       - imblearn
       - mne
+      - autopep8
 prefix: E:\miniconda3_venvs\BCI
