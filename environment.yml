@@ -1,7 +1,6 @@
 name: BCI
 channels:
   - defaults
-  - conda-forge
 dependencies:
   - python=3.8
   - pip
@@ -9,13 +8,10 @@ dependencies:
   - pandas
   - scipy
   - numpy
-  - seaborn
   - scikit-learn
-  - mne
   - pip:
-      - black
-      - explorepy
+      - explorepy>=1.6.0
       - pygame
-      - jinja2==3.0.0
       - imblearn
+      - mne
 prefix: E:\miniconda3_venvs\BCI
