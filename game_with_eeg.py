@@ -10,7 +10,7 @@ import csv
 import pandas as pd
 from MockExplore import MockExplore
 from Character import Character
-from joblib import load
+from train_model import predict_for_pygame
 
 # SETUP GLOBAL CONSTANT
 # Time in s between each row / column
@@ -32,7 +32,7 @@ FONT_SIZE = 120
 # 2 = Character box area (small area around character)
 FLASH_TYPE = 2
 # POssible screen size
-SCREEN_SIZE_SETTINGS = [(1280, 720), (1600, 900)]
+SCREEN_SIZE_SETTINGS = [(800, 600), (1280, 720), (1600, 900)]
 SCREEN_SIZE = SCREEN_SIZE_SETTINGS[0]
 # Whether the distribution of character is fully spread out in rectangle shape or
 # focus in square-ish shape
@@ -57,11 +57,8 @@ def parse_arguments():
         type=str,
         help="Name of the output files",
     )
-    parser.add_argument("-m", "--mock", dest="mock", help="Use a mock Mentalab Explore device", action="store_true")
-    parser.add_argument("--model", dest="model", type=str, help="Specify the filename of trained model to load")
-    parser.add_argument(
-        "--mock-input", dest="mock_input", type=str, help="Specify the filename of input to mock as EEG recording"
-    )
+    parser.add_argument("--mock", dest="mock", help="Use a mock Mentalab Explore device", action="store_true")
+    parser.add_argument("-m", "--model", dest="model", default="model.joblib", type=str, help="Specify the filename of trained model to load")
 
     args = parser.parse_args()
     return args
@@ -145,7 +142,7 @@ def init_char_array(starting_x_pos, char_surface_size, explore):
     return chars
 
 
-def check_user_event(explore, epoch_on, n_cycles):
+def check_user_event(explore, epoch_on):
     """
     Checks user events to exit program or restart epoch.
     Press SPACE to continue.
@@ -163,11 +160,11 @@ def check_user_event(explore, epoch_on, n_cycles):
 
 
 def do_the_prediction_thingy(args, explore):
+    # Try to record some extra data before stop
+    time.sleep(0.4)
     explore.stop_recording()
-    filename = args.output + "_ExG.csv"
-    read_exg_data = pd.read_csv(filename)
-
-    print(len(read_exg_data))
+    preds = predict_for_pygame(args.output, args.model)
+    print("Predicted: ", preds)
 
 
 def main():
@@ -175,8 +172,6 @@ def main():
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
     explore = create_explore_object(args)
     write_session_parameters(args)
-    # Load model
-    clf = load("model.joblib")
 
     # finds derived values
     char_surface_size = (SCREEN_SIZE[0] / MATRIX_DIMENSIONS[0], SCREEN_SIZE[1] / MATRIX_DIMENSIONS[1])
@@ -185,8 +180,6 @@ def main():
         tmp = min(char_surface_size[0], char_surface_size[1])
         char_surface_size = (tmp, tmp)
         starting_x_pos = (SCREEN_SIZE[0] - tmp * MATRIX_DIMENSIONS[0]) / 2
-
-    # starting_x_pos = (SCREEN_SIZE[0] - char_surface_size * MATRIX_DIMENSIONS[0]) / 2
 
     # Initialises the pygame screen
     pygame.init()
@@ -210,7 +203,7 @@ def main():
         time_of_frame = time.time()
 
         # checks user events to exit program or restart epoch by pressing spacebar
-        pressed_spacebar = check_user_event(explore, epoch_on, n_cycles)
+        pressed_spacebar = check_user_event(explore, epoch_on)
 
         # restarts epoch if pressed spacebar OR on automatic and enough time has passed
         if not epoch_on:

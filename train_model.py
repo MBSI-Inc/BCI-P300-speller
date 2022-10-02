@@ -1,4 +1,3 @@
-from symbol import parameters
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
@@ -25,6 +24,7 @@ ch_types = ["eeg"] * 4
 
 def predict_for_pygame(dir, model_name):
     # Setup parameter
+    mne.set_log_level(verbose="CRITICAL")
     info = mne.create_info(ch_names, ch_types=ch_types, sfreq=sf)
     info.set_montage("standard_1020")
 
@@ -112,5 +112,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    print(predict_for_pygame("data/default/default", "model.joblib"))
+    main()
+    # print(predict_for_pygame("data/default/default", "model.joblib"))
