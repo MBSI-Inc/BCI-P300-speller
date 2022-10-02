@@ -1,3 +1,4 @@
+import logging
 import os
 from cmath import inf
 import pygame
@@ -6,6 +7,7 @@ import time
 import explorepy
 import argparse
 import csv
+import pandas as pd
 from MockExplore import MockExplore
 from Character import Character
 from joblib import load
@@ -65,7 +67,7 @@ def parse_arguments():
     return args
 
 
-def create_explore_object(args):
+def create_explore_object(args, print_marker=False):
     args = parse_arguments()
     # Create an Explore object
     if args.mock:
@@ -73,7 +75,12 @@ def create_explore_object(args):
     else:
         explore = explorepy.Explore()
     explore.connect(device_name=args.name)
-    explore.record_data(file_name=args.output, file_type="csv", do_overwrite=True, block=False)
+    # We don't need this data
+    explore.disable_module('ORN')
+    if not print_marker:
+        # Disable logging
+        logger = logging.getLogger('explorepy')
+        logger.setLevel(level=logging.CRITICAL)
     explore.set_sampling_rate(250)
     return explore
 
@@ -151,19 +158,16 @@ def check_user_event(explore, epoch_on, n_cycles):
             exit()
         # restarts epoch if user presses space
         if not AUTO_EPOCH and not epoch_on and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            epoch_on = True
-            n_cycles = 0
-    return epoch_on, n_cycles
+            return True
+    return False
 
 
-def read_newest_line_in_recording(filename):
-    filename.seek(0, 2)
-    while True:
-        line = filename.readline()
-        if not line:
-            time.sleep(0.1)
-            continue
-        yield line
+def do_the_prediction_thingy(args, explore):
+    explore.stop_recording()
+    filename = args.output + "_ExG.csv"
+    read_exg_data = pd.read_csv(filename)
+
+    print(len(read_exg_data))
 
 
 def main():
@@ -198,17 +202,23 @@ def main():
     epoch_on = True
     n_cycles = 0
     time_end_epoch = inf
+    pressed_spacebar = False
+    explore.record_data(file_name=args.output, file_type="csv", do_overwrite=True, block=False)
+
     while True:
         # defines the time of the frame so that function does not need to be called often
         time_of_frame = time.time()
 
-        # checks user events to exit program or restart epoch
-        epoch_on, n_cycles = check_user_event(explore, epoch_on, n_cycles)
+        # checks user events to exit program or restart epoch by pressing spacebar
+        pressed_spacebar = check_user_event(explore, epoch_on, n_cycles)
 
-        # restarts epoch if on automatic and enough time has passed
-        if AUTO_EPOCH and not epoch_on and time_of_frame - time_end_epoch > BREAK_TIME:
-            epoch_on = True
-            n_cycles = 0
+        # restarts epoch if pressed spacebar OR on automatic and enough time has passed
+        if not epoch_on:
+            if pressed_spacebar or (AUTO_EPOCH and time_of_frame - time_end_epoch > BREAK_TIME):
+                epoch_on = True
+                n_cycles = 0
+                pressed_spacebar = False
+                explore.record_data(file_name=args.output, file_type="csv", do_overwrite=True, block=False)
 
         if epoch_on:
             # intensifies new group of chars and puts them on the screen
@@ -239,6 +249,8 @@ def main():
                 if n_cycles >= N_CYCLES_IN_EPOCH:
                     epoch_on = False
                     time_end_epoch = time.time()
+                    print("END EPOCHS")
+                    do_the_prediction_thingy(args, explore)
 
         # darkens rows / cols after they have been on longer then intensification durantion
         if row_intensified and time_of_frame - time_since_intensification > INTENSIFICATION_DURATION:
