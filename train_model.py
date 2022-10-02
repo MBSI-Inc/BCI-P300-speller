@@ -16,13 +16,18 @@ from analysis import print_predict_and_truth
 def setup():
     FREQ_NUM = 8
     dir = "data/brandon" + str(FREQ_NUM) + "hz/brandon" + str(FREQ_NUM) + "hz"
-    n_letter_repeats = 3
-    num_markers = [1, 3, 9, 7, 2, 6, 8, 4, 5] * n_letter_repeats  # brandon139726845
+    # dir = "data/brandon" + str(FREQ_NUM) + "hzsmallbatch/brandon" + str(FREQ_NUM) + "hz"
+    n_break = 3  # Number of time of break or number of time press spacebar - 1
+    n_letter_repeats = 5  # Number of time each character has to flash before a break / press spacebar
+    num_markers = [1, 3, 9, 7, 2, 6, 8, 4, 5] * n_break  # brandon139726845
     t_min = 0.2
     t_max = 0.4
     low = 1
     high = 10
-    epochs, y, y_val = time_series(dir, num_markers, 5, t_min, t_max, low, high, plot=False)
+    epochs, y, y_val = time_series(dir, num_markers, n_letter_repeats, t_min, t_max, low, high, plot=False)
+    print("Epoch shape", epochs.shape)
+    # Epoch shape is (x, 4, y) where x = n_char * n_repeat * n_break (ex: 1215 = 9 * 5 * 3)
+    # y is length of spelling signal
     data = epochs
     data = data.reshape([data.shape[0], data.shape[1] * data.shape[2]])
     print("Data shape: ", data.shape, "Labels shape: ", y.shape, "Values shape: ", y_val.shape)
