@@ -1,3 +1,4 @@
+import os
 from cmath import inf
 import pygame
 import random
@@ -7,6 +8,7 @@ import argparse
 import csv
 from MockExplore import MockExplore
 from Character import Character
+from joblib import load
 
 # SETUP GLOBAL CONSTANT
 # Time in s between each row / column
@@ -27,7 +29,9 @@ FONT_SIZE = 120
 # 1 = Surface area
 # 2 = Character box area (small area around character)
 FLASH_TYPE = 2
-SCREEN_SIZE = (1600, 900)
+# POssible screen size
+SCREEN_SIZE_SETTINGS = [(1280, 720), (1600, 900)]
+SCREEN_SIZE = SCREEN_SIZE_SETTINGS[0]
 # Whether the distribution of character is fully spread out in rectangle shape or
 # focus in square-ish shape
 SQUARE_SHAPE_DISTRIBUTION = False
@@ -42,16 +46,20 @@ FPS = 60
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Example code for marker generation")
-    parser.add_argument("-n", "--name", dest="name", type=str, help="Name of the device")
+    parser.add_argument("-n", "--name", dest="name", default="Explore_842F", type=str, help="Name of the device")
     parser.add_argument(
-        "-f",
-        "--filename",
-        dest="filename",
-        default="eeg_output",
+        "-o",
+        "--output",
+        dest="output",
+        default="data/default/default",
         type=str,
         help="Name of the output files",
     )
     parser.add_argument("-m", "--mock", dest="mock", help="Use a mock Mentalab Explore device", action="store_true")
+    parser.add_argument("--model", dest="model", type=str, help="Specify the filename of trained model to load")
+    parser.add_argument(
+        "--mock-input", dest="mock_input", type=str, help="Specify the filename of input to mock as EEG recording"
+    )
 
     args = parser.parse_args()
     return args
@@ -65,12 +73,13 @@ def create_explore_object(args):
     else:
         explore = explorepy.Explore()
     explore.connect(device_name=args.name)
-    explore.record_data(file_name=args.filename, file_type="csv", do_overwrite=True, block=False)
+    explore.record_data(file_name=args.output, file_type="csv", do_overwrite=True, block=False)
+    explore.set_sampling_rate(250)
     return explore
 
 
 def write_session_parameters(args):
-    with open(args.filename + "_Param.csv", "w", newline="") as f:
+    with open(args.output + "_Param.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(
             [
@@ -147,10 +156,23 @@ def check_user_event(explore, epoch_on, n_cycles):
     return epoch_on, n_cycles
 
 
+def read_newest_line_in_recording(filename):
+    filename.seek(0, 2)
+    while True:
+        line = filename.readline()
+        if not line:
+            time.sleep(0.1)
+            continue
+        yield line
+
+
 def main():
     args = parse_arguments()
+    os.makedirs(os.path.dirname(args.output), exist_ok=True)
     explore = create_explore_object(args)
     write_session_parameters(args)
+    # Load model
+    clf = load("model.joblib")
 
     # finds derived values
     char_surface_size = (SCREEN_SIZE[0] / MATRIX_DIMENSIONS[0], SCREEN_SIZE[1] / MATRIX_DIMENSIONS[1])
