@@ -163,6 +163,8 @@ def do_the_prediction_thingy(args, explore):
     # Try to record some extra data before stop
     time.sleep(0.4)
     explore.stop_recording()
+    if args.mock:
+        return
     preds = predict_for_pygame(args.output, args.model)
     print("Predicted: ", preds)
 
