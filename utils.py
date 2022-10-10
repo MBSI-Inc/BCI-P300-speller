@@ -26,9 +26,10 @@ def extract_epochs(sig, sig_times, event_times, t_min, t_max, sf):
     for i, event_t in enumerate(event_times):
         try:
             idx = np.argmax(sig_times > event_t)
-            epoch_list.append(np.array(sig[:, idx + offset_st : idx + offset_end]))
+            epoch_list.append(np.array(sig[:, idx + offset_st: idx + offset_end]))
         except:
             None
+
     return np.array(epoch_list)
 
 
@@ -78,6 +79,29 @@ def get_markers_and_ts(temp_markers, label_nontargets, label_targets):
     return y, ts_markers, y_val
 
 
+def format_data_for_prediction(dir, t_min, t_max, lf, hf,):
+    exg_filename = dir + "_ExG.csv"
+    marker_filename = dir + "_Marker.csv"
+
+    # Import data
+    exg = pd.read_csv(exg_filename)
+    markers = pd.read_csv(marker_filename)
+    ts_sig = exg["TimeStamp"].to_numpy()
+
+    sig = exg[["ch" + str(i) for i in range(1, n_ch + 1)]].to_numpy().T
+    sig -= sig[0, :] / 2
+    filt_sig = custom_filter(sig, 45, 55, sf, "bandstop")
+    filt_sig = custom_filter(filt_sig, lf, hf, sf, "bandpass")
+
+    all_ts_markers = markers["TimeStamp"].to_numpy()
+    y_val = markers["Code"]
+    # Remove the "sw_" part from marker code
+    y_val = np.array(list(map(lambda marker: marker[3:], y_val)))
+
+    epochs = extract_epochs(filt_sig, ts_sig, all_ts_markers, t_min, t_max, sf)
+    return epochs, y_val
+
+
 def time_series(dir, num_markers, n_letter_repeats, t_min, t_max, lf, hf, plot=False):
     exg_filename = dir + "_ExG.csv"
     marker_filename = dir + "_Marker.csv"
@@ -96,7 +120,7 @@ def time_series(dir, num_markers, n_letter_repeats, t_min, t_max, lf, hf, plot=F
         label_nontargets = ["sw_" + str(i) for i in range(1, 10) if i != num]
 
         p2p_max = 70  # rejection criteria, units in uV
-        temp_markers = markers.iloc[num_ind * n_letter_repeats * 9 : (num_ind + 1) * n_letter_repeats * 9, :]
+        temp_markers = markers.iloc[num_ind * n_letter_repeats * 9: (num_ind + 1) * n_letter_repeats * 9, :]
         y, ts_markers, y_val = get_markers_and_ts(
             temp_markers=temp_markers, label_nontargets=label_nontargets, label_targets=label_targets
         )

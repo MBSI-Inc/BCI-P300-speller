@@ -55,11 +55,13 @@ Update environment
 
 Run with recording data from Mentalab Explore device
 
-`python game_with_eeg.py -n [device_name] -f [output_file_name]`
+`python game_with_eeg.py -n [device_name] -o [output_filename] -m [model_filename]`
+
+Example: `python game_with_eeg.py -n Explore_842F -o data/lam8hz/lam8hz -m model.joblib`
 
 If you don't have access to the device or just want to make change to pygame code:
 
-`python game_with_eeg.py -m`
+`python game_with_eeg.py --mock`
 
 To train model with data collected from Mentalab Explore device
 
