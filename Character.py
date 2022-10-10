@@ -2,9 +2,9 @@ import pygame
 
 
 class Character:
-    def __init__(self, character, position, char_surface_size, font, flash_type, explore, grey=(50, 50, 50)):
+    def __init__(self, character, position, char_surface_size, font, flash_type, explore, char_color=(50, 50, 50)):
         self.character = character
-        self.character_image = font.render(character, True, grey)
+        self.character_image = font.render(character, True, char_color)
         self.image_location = (
             (char_surface_size[0] - self.character_image.get_width()) / 2,
             (char_surface_size[1] - self.character_image.get_height()) / 2,
@@ -15,7 +15,7 @@ class Character:
         self.flash_type = flash_type
         self.explore = explore
         self.font = font
-        self.grey = grey
+        self.char_color = char_color
         self.character_box_surface = pygame.Surface(self.character_image.get_size())
         self.character_box_surface.fill("white")
 
@@ -39,5 +39,5 @@ class Character:
 
     def darken(self):
         self.surface.fill("black")
-        self.character_image = self.font.render(self.character, True, self.grey)
+        self.character_image = self.font.render(self.character, True, self.char_color)
         self.surface.blit(self.character_image, self.image_location)

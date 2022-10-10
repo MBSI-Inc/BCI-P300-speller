@@ -7,14 +7,17 @@ import time
 import explorepy
 import argparse
 import csv
-import pandas as pd
 from MockExplore import MockExplore
 from Character import Character
 from train_model import predict_for_pygame
 
+# Disable explorepy custom excepthook
+import sys
+sys.excepthook = sys.__excepthook__
+
 # SETUP GLOBAL CONSTANT
 # Time in s between each row / column
-STIMULUS_INTERVAL = 1 / 8
+STIMULUS_INTERVAL = 1 / 16
 # Time that a row is intensified for
 INTENSIFICATION_DURATION = STIMULUS_INTERVAL * 0.5
 # Number of times each row and column will be cycled through before a break
@@ -33,7 +36,7 @@ FONT_SIZE = 120
 FLASH_TYPE = 2
 # POssible screen size
 SCREEN_SIZE_SETTINGS = [(800, 600), (1280, 720), (1600, 900)]
-SCREEN_SIZE = SCREEN_SIZE_SETTINGS[0]
+SCREEN_SIZE = SCREEN_SIZE_SETTINGS[2]
 # Whether the distribution of character is fully spread out in rectangle shape or
 # focus in square-ish shape
 SQUARE_SHAPE_DISTRIBUTION = False
@@ -68,7 +71,7 @@ def create_explore_object(args, print_marker=False):
     args = parse_arguments()
     # Create an Explore object
     if args.mock:
-        explore = MockExplore(log=True)
+        explore = MockExplore(log=False)
     else:
         explore = explorepy.Explore()
     explore.connect(device_name=args.name)
@@ -115,7 +118,7 @@ def write_session_parameters(args):
         )
 
 
-def init_char_array(starting_x_pos, char_surface_size, explore):
+def init_char_array(starting_x_pos, reserved_space, char_surface_size, explore):
     font = pygame.font.Font("HelveticaBold.ttf", FONT_SIZE)
     # Initialises all the characters to be shown on screen, saves each character in their group
     # each group is either a row or column
@@ -124,7 +127,7 @@ def init_char_array(starting_x_pos, char_surface_size, explore):
     i = 1
     row = 0
     col = 0
-    pos = [starting_x_pos, 0]
+    pos = [starting_x_pos, reserved_space]
     for char in DISPLAYED_CHARS:
         chars.append(Character(char, tuple(pos), char_surface_size, font, FLASH_TYPE, explore))
         # groups[row].append(i - 1)
@@ -159,14 +162,20 @@ def check_user_event(explore, epoch_on):
     return False
 
 
-def do_the_prediction_thingy(args, explore):
+def do_the_prediction_thingy(args, explore, screen):
     # Try to record some extra data before stop
     time.sleep(0.4)
     explore.stop_recording()
     if args.mock:
-        return
-    preds = predict_for_pygame(args.output, args.model)
-    print("Predicted: ", preds)
+        n = len(DISPLAYED_CHARS)
+        pred = DISPLAYED_CHARS[random.randint(0, n-1)]
+    else:
+        pred = predict_for_pygame(args.output, args.model)
+    print("Predicted: ", pred)
+    font = pygame.font.Font("HelveticaBold.ttf", 60)
+    char = Character(pred, (50, 50), (50, 50), font, FLASH_TYPE, explore)
+    screen.blit(char.surface, char.screen_position)
+
 
 
 def main():
@@ -175,9 +184,12 @@ def main():
     explore = create_explore_object(args)
     write_session_parameters(args)
 
+    # Reserve some space on the top for predicted characters
+    reserved_space = 100
+
     # finds derived values
-    char_surface_size = (SCREEN_SIZE[0] / MATRIX_DIMENSIONS[0], SCREEN_SIZE[1] / MATRIX_DIMENSIONS[1])
     starting_x_pos = 0
+    char_surface_size = (SCREEN_SIZE[0] / MATRIX_DIMENSIONS[0], (SCREEN_SIZE[1] - reserved_space) / MATRIX_DIMENSIONS[1])
     if SQUARE_SHAPE_DISTRIBUTION:
         tmp = min(char_surface_size[0], char_surface_size[1])
         char_surface_size = (tmp, tmp)
@@ -186,9 +198,14 @@ def main():
     # Initialises the pygame screen
     pygame.init()
     screen = pygame.display.set_mode(SCREEN_SIZE)
+    screen.fill('gray')
+    grid_surface = pygame.Surface((SCREEN_SIZE[0], SCREEN_SIZE[1] - reserved_space))
+    grid_surface.fill('black')
+    screen.blit(grid_surface, (0, reserved_space))
+
     clock = pygame.time.Clock()
 
-    chars = init_char_array(starting_x_pos, char_surface_size, explore)
+    chars = init_char_array(starting_x_pos, reserved_space, char_surface_size, explore)
 
     # starts game loop
     group_num = 0
@@ -235,7 +252,7 @@ def main():
                     group_num += 1
 
                 # refreshes and puts all characters on screen
-                screen.fill("black")
+                grid_surface.fill("black")
                 for char in chars:
                     screen.blit(char.surface, char.screen_position)
                 row_intensified = True
@@ -245,14 +262,14 @@ def main():
                     epoch_on = False
                     time_end_epoch = time.time()
                     print("END EPOCHS")
-                    do_the_prediction_thingy(args, explore)
+                    do_the_prediction_thingy(args, explore, screen)
 
-        # darkens rows / cols after they have been on longer then intensification durantion
+        # darkens rows / cols after they have been on longer then intensification duration
         if row_intensified and time_of_frame - time_since_intensification > INTENSIFICATION_DURATION:
             # darkens char
             chars[group_num - 1].darken()
             # refreshes and puts all characters on screen
-            screen.fill("black")
+            grid_surface.fill("black")
             for char in chars:
                 screen.blit(char.surface, char.screen_position)
             row_intensified = False
