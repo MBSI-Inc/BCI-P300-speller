@@ -1,0 +1,10 @@
+name: BCI-pygame
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+      - pygame
+prefix: E:\miniconda3_venvs\BCI

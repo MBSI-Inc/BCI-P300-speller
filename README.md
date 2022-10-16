@@ -43,6 +43,8 @@ In next updates, we will add argument parsers so it's easier to change parameter
 
 ## Command
 
+### Installations
+
 Required **Anaconda** or **Miniconda** installed.
 
 Create a new virtual environment and install packages
@@ -53,6 +55,18 @@ Update environment
 
 `conda env update -f environment.yml --prune`
 
+If you have problem with **explorepy** and just want to change the pygame code part, replace `environment.yml` with `environment_pygame.yml`
+
+### Scripts
+
+List all available environments
+
+`conda env list`
+
+Activate the environment
+
+`conda activate BCI` or `conda activate BCI-pygame`
+
 Run with recording data from Mentalab Explore device
 
 `python game_with_eeg.py -n [device_name] -o [output_filename] -m [model_filename]`
@@ -61,7 +75,7 @@ Example: `python game_with_eeg.py -n Explore_842F -o data/lam8hz/lam8hz -m model
 
 If you don't have access to the device or just want to make change to pygame code:
 
-`python game_with_eeg.py --mock`
+`python game_with_eeg.py --mock` or `python game_with_eeg_pygame_only.py --mock`
 
 To train model with data collected from Mentalab Explore device
 
