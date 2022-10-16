@@ -17,7 +17,7 @@ sys.excepthook = sys.__excepthook__
 
 # SETUP GLOBAL CONSTANT
 # Time in s between each row / column
-STIMULUS_INTERVAL = 1 / 16
+STIMULUS_INTERVAL = 1 / 8
 # Time that a row is intensified for
 INTENSIFICATION_DURATION = STIMULUS_INTERVAL * 0.5
 # Number of times each row and column will be cycled through before a break
@@ -62,6 +62,7 @@ def parse_arguments():
     )
     parser.add_argument("--mock", dest="mock", help="Use a mock Mentalab Explore device", action="store_true")
     parser.add_argument("-m", "--model", dest="model", default="model.joblib", type=str, help="Specify the filename of trained model to load")
+    parser.add_argument("-t", "--training", dest="training", help="Training only, no prediction", action="store_true")
 
     args = parser.parse_args()
     return args
@@ -164,18 +165,20 @@ def check_user_event(explore, epoch_on):
 
 def do_the_prediction_thingy(args, explore, screen):
     # Try to record some extra data before stop
-    time.sleep(0.4)
+    if (args.training):
+        return
+    time.sleep(0.8)
     explore.stop_recording()
     if args.mock:
         n = len(DISPLAYED_CHARS)
         pred = DISPLAYED_CHARS[random.randint(0, n-1)]
     else:
         pred = predict_for_pygame(args.output, args.model)
+    pred = str(pred)
     print("Predicted: ", pred)
     font = pygame.font.Font("HelveticaBold.ttf", 60)
-    char = Character(pred, (50, 50), (50, 50), font, FLASH_TYPE, explore)
+    char = Character(pred, (100, 50), (50, 50), font, FLASH_TYPE, explore)
     screen.blit(char.surface, char.screen_position)
-
 
 
 def main():
