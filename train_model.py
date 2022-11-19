@@ -44,9 +44,11 @@ def predict_for_pygame(dir, model_name):
     # votes = y_val[ith * 45: (ith + 1) * 45][preds[ith * 45: (ith + 1) * 45] == 1]
     # modes = pd.DataFrame(votes).value_counts().index.tolist()
     # vote_result = modes[0][0]
-    wth = 1
+    wth = 1  # weighth, can be from 0 to 10
     MA3pt_filter = [0.1, 1, 0.1+wth/20]  # [0.1, 1, 0.2-0.3]
     preds_nonUS_f = signal.convolve(preds, MA3pt_filter, mode='same', method='auto')
+
+    # Each number consisting of 45 flashes (9x5). Should not hardcode 45 though
 
     weighted_vote_result = []
     P_weighted = []
@@ -54,13 +56,14 @@ def predict_for_pygame(dir, model_name):
     first45_y_val = y_val[ith*45:(ith+1)*45]
     for jth in range(9):
         num = jth+1
-        P_weighted += [np.sum(first45_preds_f[first45_y_val == num])]
+        comparison_arr = [str(x) == str(num) for x in first45_y_val]
+        P_weighted += [np.sum(first45_preds_f[comparison_arr])]
     weighted_vote_result += [max(range(len(P_weighted)), key=P_weighted.__getitem__)+1]
     return weighted_vote_result[0]
 
 
 def setup():
-    FREQ_NUM = 4
+    FREQ_NUM = 16
     dir = "data/brandon" + str(FREQ_NUM) + "hz/brandon" + str(FREQ_NUM) + "hz"
     n_break = 3  # Number of time of break or number of time press spacebar - 1
     n_letter_repeats = 5  # Number of time each character has to flash before a break / press spacebar
@@ -125,5 +128,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    print(predict_for_pygame("data/default/default", "model.joblib"))
+    main()

@@ -22,6 +22,8 @@ Brandon's code.
 
 Data to be trained need to be in `data` folder, which on root folder. Other parameters need to be adjusted in the `setup()` function inside `train_model.py`.
 
+<https://colab.research.google.com/drive/1AWZ-ySFMcIoYP4yyyrzg11Uij_qniGjJ?authuser=3>
+
 Example data structure:
 
 ```python

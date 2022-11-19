@@ -36,7 +36,7 @@ FONT_SIZE = 120
 FLASH_TYPE = 2
 # POssible screen size
 SCREEN_SIZE_SETTINGS = [(800, 600), (1280, 720), (1600, 900)]
-SCREEN_SIZE = SCREEN_SIZE_SETTINGS[2]
+SCREEN_SIZE = SCREEN_SIZE_SETTINGS[0]
 # Whether the distribution of character is fully spread out in rectangle shape or
 # focus in square-ish shape
 SQUARE_SHAPE_DISTRIBUTION = False
