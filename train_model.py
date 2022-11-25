@@ -49,16 +49,22 @@ def predict_for_pygame(dir, model_name):
     preds_nonUS_f = signal.convolve(preds, MA3pt_filter, mode='same', method='auto')
 
     # Each number consisting of 45 flashes (9x5). Should not hardcode 45 though
+    N_CHAR = 9
+    N_FLASH = 5
+    N_FLASH_PER_CHAR = N_CHAR * N_FLASH
 
     weighted_vote_result = []
     P_weighted = []
-    first45_preds_f = preds_nonUS_f[ith*45:(ith+1)*45]
-    first45_y_val = y_val[ith*45:(ith+1)*45]
-    for jth in range(9):
-        num = jth+1
-        comparison_arr = [str(x) == str(num) for x in first45_y_val]
-        P_weighted += [np.sum(first45_preds_f[comparison_arr])]
+    first_group_preds_f = preds_nonUS_f[0: N_FLASH_PER_CHAR]
+    first_group_y_val = y_val[0: N_FLASH_PER_CHAR]
+    for i in range(N_CHAR):
+        num = i+1
+        comparison_arr = [str(x) == str(num) for x in first_group_y_val]
+        P_weighted += [np.sum(first_group_preds_f[comparison_arr])]
     weighted_vote_result += [max(range(len(P_weighted)), key=P_weighted.__getitem__)+1]
+    print(P_weighted)
+    print(P_weighted.__getitem__)
+
     return weighted_vote_result[0]
 
 
@@ -67,6 +73,7 @@ def setup():
     dir = "data/brandon" + str(FREQ_NUM) + "hz/brandon" + str(FREQ_NUM) + "hz"
     n_break = 3  # Number of time of break or number of time press spacebar - 1
     n_letter_repeats = 5  # Number of time each character has to flash before a break / press spacebar
+    # The sequence of number (ground truth) user chose
     num_markers = [1, 3, 9, 7, 2, 6, 8, 4, 5] * n_break  # brandon139726845
     epochs, y, y_val = time_series(dir, num_markers, n_letter_repeats, t_min, t_max, low, high, plot=False)
     print("Epoch shape", epochs.shape)
@@ -114,8 +121,8 @@ def train_and_predict(data, y, info):
             preds += list(clf.predict(X_samp[test]))
             preds_nonUS = clf.predict(X_nonUS_mne)
 
-        # Save model
-        dump(clf, "model.joblib")
+    # Save model
+    dump(clf, "model.joblib")
     print(type(preds_nonUS))
     print(preds_nonUS.shape)
     return y, preds_nonUS

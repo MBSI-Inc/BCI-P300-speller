@@ -82,3 +82,7 @@ If you don't have access to the device or just want to make change to pygame cod
 To train model with data collected from Mentalab Explore device
 
 `python train_model.py`
+
+## FAQ
+
+- Unpickle model has different version -> delete the old model and train a new one.
