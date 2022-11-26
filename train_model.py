@@ -40,10 +40,7 @@ def predict_for_pygame(dir, model_name):
 
     # Prediction
     preds = clf.predict(data_mne)
-    ith = 0
-    # votes = y_val[ith * 45: (ith + 1) * 45][preds[ith * 45: (ith + 1) * 45] == 1]
-    # modes = pd.DataFrame(votes).value_counts().index.tolist()
-    # vote_result = modes[0][0]
+
     wth = 1  # weighth, can be from 0 to 10
     MA3pt_filter = [0.1, 1, 0.1+wth/20]  # [0.1, 1, 0.2-0.3]
     preds_nonUS_f = signal.convolve(preds, MA3pt_filter, mode='same', method='auto')
@@ -100,8 +97,8 @@ def train_and_predict(data, y, info):
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     n_repeats = 10
     # Do cross-validation
-    preds = []  # Unused
-    final_y = []  # Unused
+    # preds = []  # Unused
+    # final_y = []  # Unused
     X_nonUS = data.reshape([data.shape[0], 4, data.shape[1] // 4])
     print("X_nonUS shape", X_nonUS.shape)
     X_nonUS_mne = mne.EpochsArray(X_nonUS, info)
@@ -110,15 +107,13 @@ def train_and_predict(data, y, info):
     for i in range(n_repeats):
         sampler = RandomUnderSampler(sampling_strategy="majority")
         X_samp, y_samp = sampler.fit_resample(data, y)
-        # print("1",X_samp.shape)
         X_samp = X_samp.reshape([X_samp.shape[0], 4, X_samp.shape[1] // 4])
-        # print("2", X_samp.shape)
         X_samp = mne.EpochsArray(X_samp, info)
 
         for train, test in cv.split(X_samp, y_samp):
             clf.fit(X_samp[train], y_samp[train])
-            final_y += list(y_samp[test])
-            preds += list(clf.predict(X_samp[test]))
+            # final_y += list(y_samp[test])
+            # preds += list(clf.predict(X_samp[test]))
             preds_nonUS = clf.predict(X_nonUS_mne)
 
     # Save model
