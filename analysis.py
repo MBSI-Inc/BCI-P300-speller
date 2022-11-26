@@ -6,6 +6,7 @@ from scipy import signal
 N_CHAR = 9
 N_FLASH = 5
 N_FLASH_PER_CHAR = 45
+N_SPELLED = 27  # How many character I spelled
 
 
 def vote_count(y, y_val, preds_nonUS):
@@ -42,10 +43,10 @@ def print_predict_and_truth(y, y_val, preds_nonUS, num_markers):
         vote_result += [modes[0][0]]
     print("vote_result", vote_result)
     print("vote_truth ", num_markers)
-    print("correct percentage:", (sum(np.array(num_markers) == np.array(vote_result)) / 27))
+    print("correct percentage:", (sum(np.array(num_markers) == np.array(vote_result)) / N_SPELLED))
 
     wth = 1
-    MA3pt_filter = [0.1, 1, 0.1+wth/20]  # [0.1, 1, 0.2-0.3]
+    MA3pt_filter = [0.1, 1, 0.2]  # [0.1, 1, 0.2-0.3]
     preds_nonUS_f = signal.convolve(preds_nonUS, MA3pt_filter, mode='same', method='auto')
 
     weighted_vote_result = []
@@ -57,7 +58,9 @@ def print_predict_and_truth(y, y_val, preds_nonUS, num_markers):
             num = j+1
             P_weighted += [np.sum(current_group_preds_nonUS_f[current_group_y_val == num])]
         weighted_vote_result += [max(range(len(P_weighted)), key=P_weighted.__getitem__)+1]
-    print("correct percentage (for weighted):", (sum(np.array(num_markers) == np.array(weighted_vote_result))/27))
+    # TODO: Why divide by 27
+    print("correct percentage (for weighted):", (sum(np.array(num_markers) == np.array(weighted_vote_result))/N_SPELLED))
+    print("AAA", sum(np.array(num_markers) == np.array(weighted_vote_result)))
     return
 
 
@@ -66,8 +69,8 @@ def show_vote_histogram(y, y_val, preds_nonUS):
     n_group = y.shape[0] // N_FLASH_PER_CHAR
 
     for ith in range(n_group):
-        cur_group_y_val = y_val[ith * 45: (ith + 1) * 45]
-        cur_group_preds_nonUS = preds_nonUS[ith * 45: (ith + 1) * 45]
+        cur_group_y_val = y_val[ith * N_FLASH_PER_CHAR: (ith + 1) * N_FLASH_PER_CHAR]
+        cur_group_preds_nonUS = preds_nonUS[ith * N_FLASH_PER_CHAR: (ith + 1) * N_FLASH_PER_CHAR]
         votes = cur_group_y_val[cur_group_preds_nonUS == 1]
         modes = pd.DataFrame(votes).value_counts().index.tolist()
         vote_result += [modes[0][0]]
