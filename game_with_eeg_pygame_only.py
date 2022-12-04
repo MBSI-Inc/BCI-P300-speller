@@ -9,15 +9,15 @@ import argparse
 import csv
 from MockExplore import MockExplore
 from Character import Character
-# from train_model import predict_for_pygame
-
+from Character import Character
+# from train_model import predict_for_pygame​
 # Disable explorepy custom excepthook
 import sys
 sys.excepthook = sys.__excepthook__
 
 # SETUP GLOBAL CONSTANT
 # Time in s between each row / column
-#TODO: High speed (Low interval) will have sticking flash number bug
+# TODO: High speed (Low interval) will have sticking flash number bug
 STIMULUS_INTERVAL = 1 / 16
 # Time that a row is intensified for
 INTENSIFICATION_DURATION = STIMULUS_INTERVAL * 0.5
@@ -43,11 +43,10 @@ SCREEN_SIZE = SCREEN_SIZE_SETTINGS[2]
 SQUARE_SHAPE_DISTRIBUTION = False
 FPS = 60
 
-
 # WARNING !!!!!!!!!
 # WARNING: We used the int() type caster in the explore.setMarker. This can cause issues in the future if we use letters.
 # Letter -> Mapping can be used in the future.
-# WARNING !!!!!!!!!
+# WARNING !!!!!!!!!​
 
 
 def parse_arguments():
@@ -64,7 +63,6 @@ def parse_arguments():
     parser.add_argument("--mock", dest="mock", help="Use a mock Mentalab Explore device", action="store_true")
     parser.add_argument("-m", "--model", dest="model", default="model.joblib", type=str, help="Specify the filename of trained model to load")
     parser.add_argument("-t", "--training", dest="training", help="Training only, no prediction", action="store_true")
-
     args = parser.parse_args()
     return args
 
@@ -164,22 +162,26 @@ def check_user_event(explore, epoch_on):
     return False
 
 
-def do_the_prediction_thingy(args, explore, screen):
+def do_the_prediction_thingy(args, explore, screen, past_predictions):
     # Try to record some extra data before stop
-    if (args.training):
-        return
-    time.sleep(0.5)
+    # Note: this function will require a list in `main` to keep track of past predictions
+    time.sleep(0.4)
     explore.stop_recording()
-    pred = ""
     if args.mock:
         n = len(DISPLAYED_CHARS)
         pred = DISPLAYED_CHARS[random.randint(0, n-1)]
     # else:
-    #     pred = predict_for_pygame(args.output, args.model)
-    pred = str(pred)
+        # pred = predict_for_pygame(args.output, args.model)
     print("Predicted: ", pred)
+
+    if len(past_predictions) != 0:
+        pos = (past_predictions[-1].screen_position[0] + 50, 50)
+    else:
+        pos = (50, 50)
+
     font = pygame.font.Font("HelveticaBold.ttf", 60)
-    char = Character(pred, (100, 50), (50, 50), font, FLASH_TYPE, explore)
+    char = Character(pred, pos, (50, 50), font, FLASH_TYPE, explore)
+    past_predictions.append(char)
     screen.blit(char.surface, char.screen_position)
 
 
@@ -207,6 +209,7 @@ def main():
     grid_surface = pygame.Surface((SCREEN_SIZE[0], SCREEN_SIZE[1] - reserved_space))
     grid_surface.fill('black')
     screen.blit(grid_surface, (0, reserved_space))
+    predictedCharacters = []
 
     clock = pygame.time.Clock()
 
@@ -267,7 +270,7 @@ def main():
                     epoch_on = False
                     time_end_epoch = time.time()
                     print("END EPOCHS")
-                    do_the_prediction_thingy(args, explore, screen)
+                    do_the_prediction_thingy(args, explore, screen, predictedCharacters)
 
         # darkens rows / cols after they have been on longer then intensification duration
         if row_intensified and time_of_frame - time_since_intensification > INTENSIFICATION_DURATION:
