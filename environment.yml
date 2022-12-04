@@ -12,7 +12,7 @@ dependencies:
   - scikit-learn
   - liblsl
   - pip:
-      - git+https://github.com/Mentalab-hub/explorepy.git@user-req-rec_struct
+      - explorepy>=1.6.0
       - pygame
       - imblearn
       - mne
