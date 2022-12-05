@@ -164,10 +164,10 @@ def check_user_event(explore, epoch_on):
 
 
 def do_the_prediction_thingy(args, explore, screen):
-    # Try to record some extra data before stop
     if (args.training):
         return
-    time.sleep(0.8)
+    # Try to record some extra data before stop
+    # time.sleep(0.2)
     explore.stop_recording()
     if args.mock:
         n = len(DISPLAYED_CHARS)
@@ -237,6 +237,7 @@ def main():
 
         if epoch_on:
             # intensifies new group of chars and puts them on the screen
+            # FIXHERE
             if time_of_frame - time_since_intensification > STIMULUS_INTERVAL:
                 # shuffles groups and starts again if all groups have been intensified
                 if group_num == MATRIX_DIMENSIONS[0] * MATRIX_DIMENSIONS[1]:
