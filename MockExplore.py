@@ -3,7 +3,7 @@ import time
 import csv
 import random
 
-TIME_SCALE = 10000
+TIME_SCALE_MOD = 1000000
 
 
 class MockExplore:
@@ -12,7 +12,7 @@ class MockExplore:
         self.sf = 250
         self.marker_counter = 0
         self.stop_write = False
-        self.output_file = "mock"
+        self.file_name = "mock"
 
     def connect(self, device_name):
         if self.log:
@@ -22,6 +22,7 @@ class MockExplore:
     def record_data(self, file_name, file_type, do_overwrite, block):
         if self.log:
             print("Mock Explore start recording:", file_name, file_type, do_overwrite)
+        self.file_name = file_name
         self.stop_write = False
         self.thread = Thread(target=self.write_fake_signal_to_file)
         self.thread.start()
@@ -31,13 +32,15 @@ class MockExplore:
         self.marker_counter += 1
         if self.log:
             print("Marker", self.marker_counter, code)
-        with open(self.output_file + "_Marker.csv", newline='', mode='a') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',')
-            if (self.marker_counter == 1):
+            
+        if (self.marker_counter == 1):
+            with open(self.file_name + "_Marker.csv", newline='', mode='w') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',')
                 writer.writerow(["TimeStamp", "Code"])
-            else:
-                writer.writerow([round(time.time(), 4), "sw_" + str(random.randint(1, 9))])
-
+        else:
+            with open(self.file_name + "_Marker.csv", newline='', mode='a') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',')
+                writer.writerow([round(time.time() % TIME_SCALE_MOD, 4), "sw_" + str(random.randint(1, 9))])
         return
 
     def stop_recording(self):
@@ -58,11 +61,11 @@ class MockExplore:
 
     def write_fake_signal_to_file(self):
         time_between = 1/self.sf
-        with open(self.output_file + "_ExG.csv", newline='', mode='w') as csvfile:
+        with open(self.file_name + "_ExG.csv", newline='', mode='w') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             writer.writerow(["TimeStamp", "ch1", "ch2", "ch3", "ch4"])
             while (not self.stop_write):
-                writer.writerow([round(time.time(), 4),
+                writer.writerow([round(time.time() % TIME_SCALE_MOD, 4),
                                  round(random.uniform(18100, 18200), 2),
                                  round(random.uniform(-600, -400), 2),
                                  round(random.uniform(21300, 21700), 2),

@@ -59,8 +59,7 @@ def predict_for_pygame(dir, model_name):
         comparison_arr = [str(x) == str(num) for x in first_group_y_val]
         P_weighted += [np.sum(first_group_preds_f[comparison_arr])]
     weighted_vote_result += [max(range(len(P_weighted)), key=P_weighted.__getitem__)+1]
-    print(P_weighted)
-    print(P_weighted.__getitem__)
+    print("weighted res", P_weighted)
 
     return weighted_vote_result[0]
 

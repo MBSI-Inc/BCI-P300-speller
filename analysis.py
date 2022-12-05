@@ -60,7 +60,6 @@ def print_predict_and_truth(y, y_val, preds_nonUS, num_markers):
         weighted_vote_result += [max(range(len(P_weighted)), key=P_weighted.__getitem__)+1]
     # TODO: Why divide by 27
     print("correct percentage (for weighted):", (sum(np.array(num_markers) == np.array(weighted_vote_result))/N_SPELLED))
-    print("AAA", sum(np.array(num_markers) == np.array(weighted_vote_result)))
     return
 
 

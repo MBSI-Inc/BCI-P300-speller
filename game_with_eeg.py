@@ -167,13 +167,13 @@ def do_the_prediction_thingy(args, explore, screen):
     if (args.training):
         return
     # Try to record some extra data before stop
-    # time.sleep(0.2)
+    time.sleep(0.8)
     explore.stop_recording()
-    if args.mock:
-        n = len(DISPLAYED_CHARS)
-        pred = DISPLAYED_CHARS[random.randint(0, n-1)]
-    else:
-        pred = predict_for_pygame(args.output, args.model)
+    # if args.mock:
+    #     n = len(DISPLAYED_CHARS)
+    #     pred = DISPLAYED_CHARS[random.randint(0, n-1)]
+    # else:
+    pred = predict_for_pygame(args.output, args.model)
     pred = str(pred)
     print("Predicted: ", pred)
     font = pygame.font.Font("HelveticaBold.ttf", 60)
