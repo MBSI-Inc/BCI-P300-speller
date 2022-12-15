@@ -9,7 +9,8 @@ import argparse
 import csv
 from MockExplore import MockExplore
 from Character import Character
-from train_model import predict_for_pygame
+from train_model import predict_for_pygame, setup_for_training, train_and_predict
+from analysis import print_predict_and_truth
 
 # Disable explorepy custom excepthook
 import sys
@@ -17,15 +18,15 @@ sys.excepthook = sys.__excepthook__
 
 # SETUP GLOBAL CONSTANT
 # Time in s between each row / column
-STIMULUS_INTERVAL = 1 / 8
+STIMULUS_INTERVAL = 1 / 16
 # Time that a row is intensified for
 INTENSIFICATION_DURATION = STIMULUS_INTERVAL * 0.5
 # Number of times each row and column will be cycled through before a break
 N_CYCLES_IN_EPOCH = 5
 # Determines if the break is automatic or epoch is reinitiated by user pressing space
-AUTO_EPOCH = False
+AUTO_EPOCH = True
 # Break time in seconds between epochs
-BREAK_TIME = 4
+BREAK_TIME = 1
 DISPLAYED_CHARS = "123456789".upper()
 MATRIX_DIMENSIONS = (3, 3)
 FONT_SIZE = 120
@@ -61,8 +62,9 @@ def parse_arguments():
         help="Name of the output files",
     )
     parser.add_argument("--mock", dest="mock", help="Use a mock Mentalab Explore device", action="store_true")
-    parser.add_argument("-m", "--model", dest="model", default="model.joblib", type=str, help="Specify the filename of trained model to load")
-    parser.add_argument("-t", "--training", dest="training", help="Training only, no prediction", action="store_true")
+    parser.add_argument("--model", dest="model", default="model.joblib", type=str, help="Specify the filename of trained model to load")
+    parser.add_argument("--mode", dest="mode", default="predict", type=str, help="Run mode: train / predict / full")
+    parser.add_argument("--train_seq", dest="train_seq", default="139726845", type=str, help="Sequence of number for training. Example: 139726845")
 
     args = parser.parse_args()
     return args
@@ -163,8 +165,8 @@ def check_user_event(explore, epoch_on):
     return False
 
 
-def do_the_prediction_thingy(args, explore, screen):
-    if (args.training):
+def do_the_prediction_thingy(is_training, args, explore, screen):
+    if (is_training):
         return
     # Try to record some extra data before stop
     time.sleep(0.8)
@@ -181,12 +183,13 @@ def do_the_prediction_thingy(args, explore, screen):
     screen.blit(char.surface, char.screen_position)
 
 
-def main():
-    args = parse_arguments()
-    os.makedirs(os.path.dirname(args.output), exist_ok=True)
-    explore = create_explore_object(args)
-    write_session_parameters(args)
+def main_train(num_markers, filename):
+    data, y, info, y_val, num_markers = setup_for_training(filename, 5, num_markers)
+    y, preds_nonUS = train_and_predict(data, y, info)
+    print_predict_and_truth(y, y_val, preds_nonUS, num_markers)
 
+
+def main_speller(explore, args, is_training=False, n_epochs=-1):
     # Reserve some space on the top for predicted characters
     reserved_space = 100
 
@@ -201,6 +204,10 @@ def main():
     # Initialises the pygame screen
     pygame.init()
     screen = pygame.display.set_mode(SCREEN_SIZE)
+    if is_training:
+        pygame.display.set_caption('Calibrating...')
+    else:
+        pygame.display.set_caption('Live spelling...')
     screen.fill('gray')
     grid_surface = pygame.Surface((SCREEN_SIZE[0], SCREEN_SIZE[1] - reserved_space))
     grid_surface.fill('black')
@@ -219,8 +226,11 @@ def main():
     time_end_epoch = inf
     pressed_spacebar = False
     explore.record_data(file_name=args.output, file_type="csv", do_overwrite=True, block=False)
+    epoch_counter = 0
 
-    while True:
+    # If not in training mode, run forever
+    # Else, run in n_epochs loops.
+    while (epoch_counter < n_epochs or not is_training):
         # defines the time of the frame so that function does not need to be called often
         time_of_frame = time.time()
 
@@ -232,8 +242,11 @@ def main():
             if pressed_spacebar or (AUTO_EPOCH and time_of_frame - time_end_epoch > BREAK_TIME):
                 epoch_on = True
                 n_cycles = 0
+                epoch_counter += 1
+                print("epoch_counteraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", epoch_counter)
                 pressed_spacebar = False
-                explore.record_data(file_name=args.output, file_type="csv", do_overwrite=True, block=False)
+                if not is_training:
+                    explore.record_data(file_name=args.output, file_type="csv", do_overwrite=True, block=False)
 
         if epoch_on:
             # intensifies new group of chars and puts them on the screen
@@ -266,7 +279,7 @@ def main():
                     epoch_on = False
                     time_end_epoch = time.time()
                     print("END EPOCHS")
-                    do_the_prediction_thingy(args, explore, screen)
+                    do_the_prediction_thingy(is_training, args, explore, screen)
 
         # darkens rows / cols after they have been on longer then intensification duration
         if row_intensified and time_of_frame - time_since_intensification > INTENSIFICATION_DURATION:
@@ -280,6 +293,25 @@ def main():
 
         pygame.display.update()
         clock.tick(FPS)
+    time.sleep(0.8)
+    explore.stop_recording()
+    pygame.quit()
+
+
+def main():
+    args = parse_arguments()
+    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+    explore = create_explore_object(args)
+    write_session_parameters(args)
+    if (args.mode == "train" or args.mode == "full"):
+        num_markers = [int(item) for item in list(args.train_seq)]
+        print("=====================TRAIN=====================")
+        main_speller(explore, args, True, len(num_markers))
+        main_train(num_markers, args.output)
+    print("=====================LIVE SPELLING=====================")
+    # Should run forever until force termination
+    # main_speller()
+    return
 
 
 if __name__ == "__main__":
