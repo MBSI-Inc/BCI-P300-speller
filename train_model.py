@@ -127,8 +127,8 @@ def train_and_predict(data, y, info):
 
 
 def main():
-    num_markers = [1, 3, 9, 7, 2, 6, 8, 4, 5]*3
-    data, y, info, y_val, num_markers = setup_for_training("data/brandon16hz/brandon16hz", 5, num_markers)
+    num_markers = [1, 2, 3]
+    data, y, info, y_val, num_markers = setup_for_training("data/default/default", 5, num_markers)
     y, preds_nonUS = train_and_predict(data, y, info)
     print_predict_and_truth(y, y_val, preds_nonUS, num_markers)
 

@@ -299,15 +299,20 @@ def main_speller(explore, args, is_training=False, n_epochs=-1):
 
 
 def main():
+    # Get config input
     args = parse_arguments()
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
     explore = create_explore_object(args)
     write_session_parameters(args)
+
+    # Do the calibrating + training
     if (args.mode == "train" or args.mode == "full"):
         num_markers = [int(item) for item in list(args.train_seq)]
         print("=====================TRAIN=====================")
         main_speller(explore, args, True, len(num_markers))
         main_train(num_markers, args.output)
+
+    # Do the spelling
     print("=====================LIVE SPELLING=====================")
     # Should run forever until force termination
     # main_speller()
