@@ -77,6 +77,22 @@ Run with option to record data, train the model then live spelling:
 
 Example: `python game_with_eeg.py -n Explore_842F -o data/lam16hz/lam16hz --mode full --train_seq 135792468`
 
+Run with live predicting only
+
+`python game_with_eeg.py -n [device name] --model [model name] --mode predict`
+
+### Arguments
+
+- `-n`, `--name` : Name of the Mentalab Explore device. Default is `Explore_842F`.
+- `-o`, `--output`: Name of the output files directory + filename. **Example**: "data/default/lam16hz" will created `lam16hz_ExG.csv` and `lam16hz_Marker.csv` in default `data` folder, which is on root folder. Default is `data/default/default`.
+- `--mock` : Flag that tell the program to use a mock Explore instead of real Explore device. Useful if you don't have access to one but want to code some stuff.
+
+- `--model`: The training model for predicting. Default is `model.joblib`.
+
+- `--mode`: The running mode of the program. There are three modes: `train`, `predict` and `full`. `full` will do `train` first, save the model, then `predict`. Default is `predict`.
+
+- `--train_seq`: Sequence of number to be used as the ground truth in training.
+
 ## FAQ
 
 - Unpickle model has different version error -> delete the old model and train a new one.
