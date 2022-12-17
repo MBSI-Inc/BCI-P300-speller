@@ -69,20 +69,14 @@ Activate the environment
 
 `conda activate BCI` or `conda activate BCI-pygame`
 
-Run with recording data from Mentalab Explore device
+Add `--mock` flag if you don't have access to Mentalab Explore device.
 
-`python game_with_eeg.py -n [device_name] -o [output_filename] -m [model_filename]`
+Run with option to record data, train the model then live spelling:
 
-Example: `python game_with_eeg.py -n Explore_842F -o data/lam8hz/lam8hz -m model.joblib`
+`python game_with_eeg.py -n [device name] -o [data output file] --mode full --train_seq [sequence of numbers used in training]`
 
-If you don't have access to the device or just want to make change to pygame code:
-
-`python game_with_eeg.py --mock` or `python game_with_eeg_pygame_only.py --mock`
-
-To train model with data collected from Mentalab Explore device
-
-`python train_model.py`
+Example: `python game_with_eeg.py -n Explore_842F -o data/lam16hz/lam16hz --mode full --train_seq 135792468`
 
 ## FAQ
 
-- Unpickle model has different version -> delete the old model and train a new one.
+- Unpickle model has different version error -> delete the old model and train a new one.

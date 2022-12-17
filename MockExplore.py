@@ -4,6 +4,7 @@ import csv
 import random
 
 TIME_SCALE_MOD = 1000000
+DISPLAYED_CHARS = "123456789".upper()
 
 
 class MockExplore:
@@ -13,6 +14,8 @@ class MockExplore:
         self.marker_counter = 0
         self.stop_write = False
         self.file_name = "mock"
+        self.chars = [x for x in DISPLAYED_CHARS]
+        self.chars_counter = 0
 
     def connect(self, device_name):
         if self.log:
@@ -32,7 +35,7 @@ class MockExplore:
         self.marker_counter += 1
         if self.log:
             print("Marker", self.marker_counter, code)
-            
+
         if (self.marker_counter == 1):
             with open(self.file_name + "_Marker.csv", newline='', mode='w') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',')
@@ -40,7 +43,11 @@ class MockExplore:
         else:
             with open(self.file_name + "_Marker.csv", newline='', mode='a') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',')
-                writer.writerow([round(time.time() % TIME_SCALE_MOD, 4), "sw_" + str(random.randint(1, 9))])
+                writer.writerow([round(time.time() % TIME_SCALE_MOD, 4), "sw_" + self.chars[self.chars_counter]])
+                self.chars_counter += 1
+        if (self.chars_counter >= len(self.chars)):
+            self.chars_counter = 0
+            random.shuffle(self.chars)
         return
 
     def stop_recording(self):
