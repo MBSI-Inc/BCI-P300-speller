@@ -22,7 +22,7 @@ STIMULUS_INTERVAL = 1 / 16
 # Time that a row is intensified for
 INTENSIFICATION_DURATION = STIMULUS_INTERVAL * 0.5
 # Number of times each row and column will be cycled through before a break
-N_CYCLES_IN_EPOCH = 5
+N_CYCLES_IN_EPOCH = 5  # Also know as N_REPEAT
 # Determines if the break is automatic or epoch is reinitiated by user pressing space
 AUTO_EPOCH = True
 # Break time in seconds between epochs
@@ -165,7 +165,7 @@ def check_user_event(explore, epoch_on):
     return False
 
 
-def do_the_prediction_thingy(is_training, args, explore, screen):
+def do_the_prediction_thingy(is_training, args, explore, screen, past_predictions):
     if (is_training):
         return
     # Try to record some extra data before stop
@@ -178,8 +178,13 @@ def do_the_prediction_thingy(is_training, args, explore, screen):
     pred = predict_for_pygame(args.output, args.model)
     pred = str(pred)
     print("Predicted: ", pred)
+    if len(past_predictions) != 0:
+        pos = (past_predictions[-1].screen_position[0] + 50, 25)
+    else:
+        pos = (50, 25)
     font = pygame.font.Font("HelveticaBold.ttf", 60)
-    char = Character(pred, (100, 50), (50, 50), font, FLASH_TYPE, explore)
+    char = Character(pred, pos, (50, 50), font, FLASH_TYPE, explore)
+    past_predictions.append(char)
     screen.blit(char.surface, char.screen_position)
 
 
@@ -212,9 +217,7 @@ def main_speller(explore, args, is_training=False, n_epochs=-1):
     grid_surface = pygame.Surface((SCREEN_SIZE[0], SCREEN_SIZE[1] - reserved_space))
     grid_surface.fill('black')
     screen.blit(grid_surface, (0, reserved_space))
-
     clock = pygame.time.Clock()
-
     chars = init_char_array(starting_x_pos, reserved_space, char_surface_size, explore)
 
     # starts game loop
@@ -227,6 +230,7 @@ def main_speller(explore, args, is_training=False, n_epochs=-1):
     pressed_spacebar = False
     explore.record_data(file_name=args.output, file_type="csv", do_overwrite=True, block=False)
     epoch_counter = 0
+    predictedCharacters = []
 
     # If not in training mode, run forever
     # Else, run in n_epochs loops.
@@ -243,7 +247,6 @@ def main_speller(explore, args, is_training=False, n_epochs=-1):
                 epoch_on = True
                 n_cycles = 0
                 epoch_counter += 1
-                print("epoch_counteraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", epoch_counter)
                 pressed_spacebar = False
                 if not is_training:
                     explore.record_data(file_name=args.output, file_type="csv", do_overwrite=True, block=False)
@@ -278,8 +281,8 @@ def main_speller(explore, args, is_training=False, n_epochs=-1):
                 if n_cycles >= N_CYCLES_IN_EPOCH:
                     epoch_on = False
                     time_end_epoch = time.time()
-                    print("END EPOCHS")
-                    do_the_prediction_thingy(is_training, args, explore, screen)
+                    print("END EPOCHS", epoch_counter)
+                    do_the_prediction_thingy(is_training, args, explore, screen, predictedCharacters)
 
         # darkens rows / cols after they have been on longer then intensification duration
         if row_intensified and time_of_frame - time_since_intensification > INTENSIFICATION_DURATION:
@@ -315,7 +318,7 @@ def main():
     # Do the spelling
     print("=====================LIVE SPELLING=====================")
     # Should run forever until force termination
-    # main_speller()
+    main_speller(explore, args)
     return
 
 

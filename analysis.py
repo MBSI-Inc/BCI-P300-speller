@@ -4,8 +4,8 @@ import numpy as np
 from scipy import signal
 
 N_CHAR = 9  # Number of available characters for spelling
-N_FLASH = 5
-N_FLASH_PER_CHAR = N_CHAR * N_FLASH
+N_REPEAT = 5
+N_FLASH_PER_CHAR = N_CHAR * N_REPEAT
 
 
 def vote_count(y, y_val, preds_nonUS):
@@ -32,7 +32,6 @@ def vote_count(y, y_val, preds_nonUS):
 
 def print_predict_and_truth(y, y_val, preds_nonUS, num_markers):
     n_spelled = len(num_markers)
-    N_FLASH_PER_CHAR = n_spelled * N_FLASH
     vote_result = []
     n_group = y.shape[0] // N_FLASH_PER_CHAR
 

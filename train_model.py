@@ -47,8 +47,8 @@ def predict_for_pygame(dir, model_name):
 
     # Each number consisting of 45 flashes (9x5). Should not hardcode 45 though
     N_CHAR = 9
-    N_FLASH = 5
-    N_FLASH_PER_CHAR = N_CHAR * N_FLASH
+    N_REPEAT = 5
+    N_FLASH_PER_CHAR = N_CHAR * N_REPEAT
 
     weighted_vote_result = []
     P_weighted = []
@@ -98,7 +98,6 @@ def train_and_predict(data, y, info):
         Xdawn(n_components=n_filter), Vectorizer(), MinMaxScaler(), LDA(solver="eigen", shrinkage="auto")
     )
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    n_repeats = 10
     # Do cross-validation
     # preds = []  # Unused
     # final_y = []  # Unused
@@ -107,7 +106,7 @@ def train_and_predict(data, y, info):
     X_nonUS_mne = mne.EpochsArray(X_nonUS, info)
 
     # Random undersample some nontargets
-    for i in range(n_repeats):
+    for i in range(10):
         sampler = RandomUnderSampler(sampling_strategy="majority")
         X_samp, y_samp = sampler.fit_resample(data, y)
         X_samp = X_samp.reshape([X_samp.shape[0], 4, X_samp.shape[1] // 4])
@@ -127,7 +126,7 @@ def train_and_predict(data, y, info):
 
 
 def main():
-    num_markers = [1, 2, 3]
+    num_markers = [1, 3, 5, 4]
     data, y, info, y_val, num_markers = setup_for_training("data/default/default", 5, num_markers)
     y, preds_nonUS = train_and_predict(data, y, info)
     print_predict_and_truth(y, y_val, preds_nonUS, num_markers)
