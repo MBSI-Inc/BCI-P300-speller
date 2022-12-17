@@ -27,9 +27,9 @@ def extract_epochs(sig, sig_times, event_times, t_min, t_max, sf):
         try:
             idx = np.argmax(sig_times > event_t)
             epoch_list.append(np.array(sig[:, idx + offset_st: idx + offset_end]))
+            # print("AAAAAAAAAAAAA i idx", np.array(sig[:, idx + offset_st: idx + offset_end]).shape, i, idx)
         except:
             None
-
     return np.array(epoch_list)
 
 

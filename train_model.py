@@ -59,20 +59,24 @@ def predict_for_pygame(dir, model_name):
         comparison_arr = [str(x) == str(num) for x in first_group_y_val]
         P_weighted += [np.sum(first_group_preds_f[comparison_arr])]
     weighted_vote_result += [max(range(len(P_weighted)), key=P_weighted.__getitem__)+1]
-    print(P_weighted)
-    print(P_weighted.__getitem__)
+    print("weighted res", P_weighted)
 
     return weighted_vote_result[0]
 
 
-def setup():
-    FREQ_NUM = 16
-    dir = "data/brandon" + str(FREQ_NUM) + "hz/brandon" + str(FREQ_NUM) + "hz"
-    n_break = 3  # Number of time of break or number of time press spacebar - 1
-    n_letter_repeats = 5  # Number of time each character has to flash before a break / press spacebar
+def setup_for_training(filename="data/default/default", n_letter_repeats=5, num_markers=[1, 3, 9, 7, 2, 6, 8, 4, 5]):
+    """Setup the training dataset
+
+    Args:
+        filename (string, optional): Directory and file prefixes of the data files for training. Example: data/brandon16hz/brandon16hz (_ExG.csv or _Marker.csv).
+        n_letter_repeats (int, optional): Number of time each character has to flash before a break / press spacebar. Defaults to 5.
+        num_markers (list, optional): The sequence of number (ground truth) user chose. Defaults to [1, 3, 9, 7, 2, 6, 8, 4, 5].
+
+    Returns:
+        (data, y, info, y_val, num_markers): _description_
+    """
     # The sequence of number (ground truth) user chose
-    num_markers = [1, 3, 9, 7, 2, 6, 8, 4, 5] * n_break  # brandon139726845
-    epochs, y, y_val = time_series(dir, num_markers, n_letter_repeats, t_min, t_max, low, high, plot=False)
+    epochs, y, y_val = time_series(filename, num_markers, n_letter_repeats, t_min, t_max, low, high, plot=False)
     print("Epoch shape", epochs.shape)
     # Epoch shape is (x, 4, y) where x = n_char * n_repeat * n_break (ex: 1215 = 9 * 5 * 3)
     # y is length of spelling signal
@@ -80,7 +84,6 @@ def setup():
     data = data.reshape([data.shape[0], data.shape[1] * data.shape[2]])
     print("Data shape: ", data.shape, "Labels shape: ", y.shape, "Values shape: ", y_val.shape)
     # Set up the MNE info
-
     info = mne.create_info(ch_names, ch_types=ch_types, sfreq=sf)
     info.set_montage("standard_1020")
     print(info)
@@ -124,7 +127,8 @@ def train_and_predict(data, y, info):
 
 
 def main():
-    data, y, info, y_val, num_markers = setup()
+    num_markers = [1, 2, 3]
+    data, y, info, y_val, num_markers = setup_for_training("data/default/default", 5, num_markers)
     y, preds_nonUS = train_and_predict(data, y, info)
     print_predict_and_truth(y, y_val, preds_nonUS, num_markers)
 

@@ -3,10 +3,9 @@ import pandas as pd
 import numpy as np
 from scipy import signal
 
-N_CHAR = 9
+N_CHAR = 9  # Number of available characters for spelling
 N_FLASH = 5
-N_FLASH_PER_CHAR = 45
-N_SPELLED = 27  # How many character I spelled
+N_FLASH_PER_CHAR = N_CHAR * N_FLASH
 
 
 def vote_count(y, y_val, preds_nonUS):
@@ -32,6 +31,8 @@ def vote_count(y, y_val, preds_nonUS):
 
 
 def print_predict_and_truth(y, y_val, preds_nonUS, num_markers):
+    n_spelled = len(num_markers)
+    N_FLASH_PER_CHAR = n_spelled * N_FLASH
     vote_result = []
     n_group = y.shape[0] // N_FLASH_PER_CHAR
 
@@ -43,7 +44,7 @@ def print_predict_and_truth(y, y_val, preds_nonUS, num_markers):
         vote_result += [modes[0][0]]
     print("vote_result", vote_result)
     print("vote_truth ", num_markers)
-    print("correct percentage:", (sum(np.array(num_markers) == np.array(vote_result)) / N_SPELLED))
+    print("correct percentage:", (sum(np.array(num_markers) == np.array(vote_result)) / n_spelled))
 
     wth = 1
     MA3pt_filter = [0.1, 1, 0.2]  # [0.1, 1, 0.2-0.3]
@@ -59,8 +60,7 @@ def print_predict_and_truth(y, y_val, preds_nonUS, num_markers):
             P_weighted += [np.sum(current_group_preds_nonUS_f[current_group_y_val == num])]
         weighted_vote_result += [max(range(len(P_weighted)), key=P_weighted.__getitem__)+1]
     # TODO: Why divide by 27
-    print("correct percentage (for weighted):", (sum(np.array(num_markers) == np.array(weighted_vote_result))/N_SPELLED))
-    print("AAA", sum(np.array(num_markers) == np.array(weighted_vote_result)))
+    print("correct percentage (for weighted):", (sum(np.array(num_markers) == np.array(weighted_vote_result))/n_spelled))
     return
 
 

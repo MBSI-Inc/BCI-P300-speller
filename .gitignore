@@ -4,6 +4,7 @@ mentalab_p300_data/
 *.mat
 *.joblib
 data/
+mock_*.*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
