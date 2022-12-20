@@ -25,7 +25,15 @@ SCREEN_SIZE = SCREEN_SIZE_SETTINGS[0]
 SQUARE_SHAPE_DISTRIBUTION = False
 FPS = 60
 
-N_CHAR = 9
-N_FLASH = 5
-N_FLASH_PER_CHAR = 45
-N_SPELLED = 27  # How many character I spelled
+N_CHAR = 9  # Number of available characters for spelling
+N_REPEAT = N_CYCLES_IN_EPOCH
+N_FLASH_PER_CHAR = N_CHAR * N_REPEAT
+
+SF = 250  # Sampling frequency
+T_MIN = 0.2
+T_MAX = 0.4
+LOW = 1
+HIGH = 10
+CH_NAMES = ["Oz", "POz", "PO3", "PO4"]
+CH_TYPES = ["eeg"] * 4
+N_CHANNELS = 4

@@ -13,14 +13,7 @@ import numpy as np
 # Our stuff
 from utils import format_data_for_prediction, time_series
 from analysis import print_predict_and_truth
-
-sf = 250
-t_min = 0.2
-t_max = 0.4
-low = 1
-high = 10
-ch_names = ["O1", "Oz", "O2", "Pz"]
-ch_types = ["eeg"] * 4
+from config import *
 
 
 def predict_for_pygame(dir, model_name):
@@ -35,11 +28,11 @@ def predict_for_pygame(dir, model_name):
     """
     # Setup parameter
     mne.set_log_level(verbose="CRITICAL")
-    info = mne.create_info(ch_names, ch_types=ch_types, sfreq=sf)
+    info = mne.create_info(ch_names=CH_NAMES, ch_types=CH_TYPES, sfreq=SF)
     info.set_montage("standard_1020")
 
     # Format data
-    data, y_val = format_data_for_prediction(dir, t_min, t_max, low, high)
+    data, y_val = format_data_for_prediction(dir, T_MIN, T_MAX, LOW, HIGH)
     data = data.reshape([data.shape[0], data.shape[1] * data.shape[2]])
     data = data.reshape([data.shape[0], 4, data.shape[1] // 4])
     data_mne = mne.EpochsArray(data, info)
@@ -85,7 +78,7 @@ def setup_for_training(filename="data/default/default", n_letter_repeats=5, num_
         (data, y, info, y_val, num_markers): Lots of stuff
     """
     # The sequence of number (ground truth) user chose
-    epochs, y, y_val = time_series(filename, num_markers, n_letter_repeats, t_min, t_max, low, high, plot=False)
+    epochs, y, y_val = time_series(filename, num_markers, n_letter_repeats, T_MIN, T_MAX, LOW, HIGH, plot=False)
     print("Epoch shape", epochs.shape)
     # Epoch shape is (x, 4, y) where x = n_char * n_repeat * n_break (ex: 1215 = 9 * 5 * 3)
     # y is length of spelling signal
@@ -93,7 +86,7 @@ def setup_for_training(filename="data/default/default", n_letter_repeats=5, num_
     data = data.reshape([data.shape[0], data.shape[1] * data.shape[2]])
     print("Data shape: ", data.shape, "Labels shape: ", y.shape, "Values shape: ", y_val.shape)
     # Set up the MNE info
-    info = mne.create_info(ch_names, ch_types=ch_types, sfreq=sf)
+    info = mne.create_info(ch_names=CH_NAMES, ch_types=CH_TYPES, sfreq=SF)
     info.set_montage("standard_1020")
     print(info)
     mne.set_log_level(verbose="CRITICAL")

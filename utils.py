@@ -2,10 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy import signal
 import numpy as np
-
-CH_LABELS = ["Fz", "C4", "Cz", "C3"]
-sf = 250
-n_ch = 4
+from config import *
 
 
 def extract_epochs(sig, sig_times, event_times, t_min, t_max, sf):
@@ -88,17 +85,17 @@ def format_data_for_prediction(dir, t_min, t_max, lf, hf,):
     markers = pd.read_csv(marker_filename)
     ts_sig = exg["TimeStamp"].to_numpy()
 
-    sig = exg[["ch" + str(i) for i in range(1, n_ch + 1)]].to_numpy().T
+    sig = exg[["ch" + str(i) for i in range(1, N_CHANNELS + 1)]].to_numpy().T
     sig -= sig[0, :] / 2
-    filt_sig = custom_filter(sig, 45, 55, sf, "bandstop")
-    filt_sig = custom_filter(filt_sig, lf, hf, sf, "bandpass")
+    filt_sig = custom_filter(sig, 45, 55, SF, "bandstop")
+    filt_sig = custom_filter(filt_sig, lf, hf, SF, "bandpass")
 
     all_ts_markers = markers["TimeStamp"].to_numpy()
     y_val = markers["Code"]
     # Remove the "sw_" part from marker code
     y_val = np.array(list(map(lambda marker: marker[3:], y_val)))
 
-    epochs = extract_epochs(filt_sig, ts_sig, all_ts_markers, t_min, t_max, sf)
+    epochs = extract_epochs(filt_sig, ts_sig, all_ts_markers, t_min, t_max, SF)
     return epochs, y_val
 
 
@@ -131,12 +128,12 @@ def time_series(dir, num_markers, n_letter_repeats, t_min, t_max, lf, hf, plot=F
     all_y_val = np.array(all_y_val).copy()
     all_ts_markers = np.array(all_ts_markers).copy()
 
-    sig = exg[["ch" + str(i) for i in range(1, n_ch + 1)]].to_numpy().T
+    sig = exg[["ch" + str(i) for i in range(1, N_CHANNELS + 1)]].to_numpy().T
     sig -= sig[0, :] / 2
-    filt_sig = custom_filter(sig, 45, 55, sf, "bandstop")
-    filt_sig = custom_filter(filt_sig, lf, hf, sf, "bandpass")
+    filt_sig = custom_filter(sig, 45, 55, SF, "bandstop")
+    filt_sig = custom_filter(filt_sig, lf, hf, SF, "bandpass")
 
-    epochs = extract_epochs(filt_sig, ts_sig, all_ts_markers, t_min, t_max, sf)
+    epochs = extract_epochs(filt_sig, ts_sig, all_ts_markers, t_min, t_max, SF)
     #   epochs = reject_bad_epochs(epochs, p2p_max)
     if plot:
         erp_target = epochs[(all_y == 1)].mean(axis=0)
@@ -150,7 +147,7 @@ def time_series(dir, num_markers, n_letter_repeats, t_min, t_max, lf, hf, plot=F
             ax.plot([0, 0], [-30, 30], linestyle="dotted", color="black")
             ax.set_ylabel("\u03BCV")
             ax.set_xlabel("Time (s)")
-            ax.set_title(CH_LABELS[i])
+            ax.set_title(CH_NAMES[i])
             ax.set_ylim([-10, 20])
             ax.legend()
         plt.show()

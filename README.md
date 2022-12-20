@@ -59,6 +59,8 @@ Update environment
 
 If you have problem with **explorepy** and just want to change the pygame code part, replace `environment.yml` with `environment_pygame.yml`
 
+Change the constant in `config.py` to change the global constant.
+
 ### Scripts
 
 List all available environments
