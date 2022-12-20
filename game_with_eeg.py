@@ -59,7 +59,7 @@ def parse_arguments():
         dest="output",
         default="data/default/default",
         type=str,
-        help="Name of the output files",
+        help="Name of the output files directory + filename",
     )
     parser.add_argument("--mock", dest="mock", help="Use a mock Mentalab Explore device", action="store_true")
     parser.add_argument("--model", dest="model", default="model.joblib", type=str, help="Specify the filename of trained model to load")
@@ -89,6 +89,11 @@ def create_explore_object(args, print_marker=False):
 
 
 def write_session_parameters(args):
+    """Write parameters of the program, which can be useful for training later.
+
+    Args:
+        args (Object): Arguments passed from command line.
+    """
     with open(args.output + "_Param.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(
@@ -122,6 +127,18 @@ def write_session_parameters(args):
 
 
 def init_char_array(starting_x_pos, reserved_space, char_surface_size, explore):
+    """Initialize the character array used to control which character flashed or darken
+    in the experiment.
+
+    Args:
+        starting_x_pos (_type_): 
+        reserved_space (_type_): Reserved space for the grey area that display predicted characters.
+        char_surface_size (_type_): 
+        explore (_type_): The Explore object.
+
+    Returns:
+        list of Character objects
+    """
     font = pygame.font.Font("HelveticaBold.ttf", FONT_SIZE)
     # Initialises all the characters to be shown on screen, saves each character in their group
     # each group is either a row or column
@@ -166,6 +183,15 @@ def check_user_event(explore, epoch_on):
 
 
 def do_the_prediction_thingy(is_training, args, explore, screen, past_predictions):
+    """Predict the spelled character at the end of trial/epoch.
+
+    Args:
+        is_training (bool): _description_
+        args (_type_): Command line arguments
+        explore (_type_): Explore object
+        screen (_type_): The screen that experiment pygame is using to draw
+        past_predictions (_type_): _description_
+    """
     if (is_training):
         return
     # Try to record some extra data before stop

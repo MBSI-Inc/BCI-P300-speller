@@ -24,6 +24,15 @@ ch_types = ["eeg"] * 4
 
 
 def predict_for_pygame(dir, model_name):
+    """Predict a single character from data recorded in one trial/epoch in the pygame.
+
+    Args:
+        dir (string): Recorded data file prefixes and directory. Example: data/brandon/brandon (_Exg.csv)
+        model_name (string):
+
+    Returns:
+        int: predicted character
+    """
     # Setup parameter
     mne.set_log_level(verbose="CRITICAL")
     info = mne.create_info(ch_names, ch_types=ch_types, sfreq=sf)
@@ -73,7 +82,7 @@ def setup_for_training(filename="data/default/default", n_letter_repeats=5, num_
         num_markers (list, optional): The sequence of number (ground truth) user chose. Defaults to [1, 3, 9, 7, 2, 6, 8, 4, 5].
 
     Returns:
-        (data, y, info, y_val, num_markers): _description_
+        (data, y, info, y_val, num_markers): Lots of stuff
     """
     # The sequence of number (ground truth) user chose
     epochs, y, y_val = time_series(filename, num_markers, n_letter_repeats, t_min, t_max, low, high, plot=False)
